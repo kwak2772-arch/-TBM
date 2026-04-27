@@ -549,7 +549,7 @@ async function submitTBM(){
     branch:document.getElementById('f-branch').value.trim(),
     contact:document.getElementById('f-contact').value.trim(),
     notified:document.getElementById('f-notified').checked,
-    notNeeded:document.getElementById('f-not-needed').checked,
+    notNeeded:false,
     chief:chief+' '+(document.getElementById('f-chief-etc').value.trim()),
     tech:[...ppl.tech],support:[...ppl.support],assist:[...ppl.assist],
     safeties:safeties.filter(s=>s&&s.trim()),
@@ -802,6 +802,23 @@ function initMap(){
   if(!container)return;
   const options={center:new kakao.maps.LatLng(36.5,127.8),level:13};
   map=new kakao.maps.Map(container,options);
+}
+
+function setMapType(type){
+  if(!map)return;
+  if(type==='skyview'){
+    map.setMapTypeId(kakao.maps.MapTypeId.HYBRID);
+    document.getElementById('btn-sky').style.background='#1a1a1a';
+    document.getElementById('btn-sky').style.color='#fff';
+    document.getElementById('btn-normal').style.background='#fff';
+    document.getElementById('btn-normal').style.color='#1a1a1a';
+  } else {
+    map.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);
+    document.getElementById('btn-normal').style.background='#1a1a1a';
+    document.getElementById('btn-normal').style.color='#fff';
+    document.getElementById('btn-sky').style.background='#fff';
+    document.getElementById('btn-sky').style.color='#1a1a1a';
+  }
 }
 
 function showDetail(r){
