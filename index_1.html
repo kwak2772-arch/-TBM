@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26년 안전진단(점검)용역 TBM</title>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=7640bd679ef467920c8c1f6daa9e053e&libraries=services&autoload=false"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;}
+.wrap{max-width:780px;margin:0 auto;padding:16px;}
+.top-bar{background:#1a1a1a;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.top-bar .logo{font-size:14px;font-weight:500;}
+.top-bar .conn{font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.15);}
+.top-bar .conn.ok{background:#3B6D11;color:#fff;}
+.tab-bar{display:flex;background:#fff;border-bottom:1px solid #e5e5e2;position:sticky;top:45px;z-index:49;}
+.tab{padding:11px 20px;cursor:pointer;font-size:13px;color:#888;border-bottom:2px solid transparent;}
+.tab.active{color:#1a1a1a;border-bottom:2px solid #1a1a1a;font-weight:500;}
+.sec{display:none;padding:16px 0;}.sec.active{display:block;}
+.card{background:#fff;border:1px solid #e5e5e2;border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.ihead{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.inum{width:22px;height:22px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.inum.blue{background:#185FA5;}
+.ititle{font-size:13px;font-weight:500;}
+label{display:block;font-size:11px;color:#666;margin-bottom:3px;font-weight:500;}
+input[type=text],input[type=date],input[type=time],select,textarea{width:100%;padding:8px 11px;border:1px solid #d0d0cc;border-radius:8px;font-size:13px;background:#fff;color:#1a1a1a;font-family:inherit;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:#1a1a1a;}
+textarea{resize:vertical;min-height:64px;line-height:1.6;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.fg{margin-bottom:10px;}
+.btn{padding:8px 16px;border-radius:8px;border:1px solid #d0d0cc;background:#fff;color:#1a1a1a;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit;}
+.btn:hover{background:#f5f5f3;}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.btn-primary:hover{opacity:0.85;}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn-red{color:#A32D2D;border-color:#F09595;}
+.tag{display:inline-flex;align-items:center;gap:5px;background:#f5f5f3;border:1px solid #e5e5e2;border-radius:20px;padding:4px 10px;font-size:12px;margin:2px;}
+.tag button{background:none;border:none;cursor:pointer;color:#888;font-size:14px;line-height:1;}
+.add-row{display:flex;gap:6px;margin-top:6px;}
+.add-row input{flex:1;}
+.tw{display:flex;flex-wrap:wrap;min-height:28px;padding:2px 0;}
+.si{display:flex;gap:6px;margin-bottom:6px;}
+.si textarea{flex:1;min-height:40px;}
+.pw{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.pb{padding:4px 11px;border-radius:20px;border:1px solid #d0d0cc;background:#f5f5f3;cursor:pointer;font-size:11px;color:#555;}
+.pb:hover{background:#fff;border-color:#888;}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;}
+.pbox{aspect-ratio:4/3;border-radius:8px;position:relative;overflow:hidden;background:#f5f5f3;}
+.pbox img{width:100%;height:100%;object-fit:cover;}
+.pbox .px{display:none;position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;align-items:center;justify-content:center;}
+.pbox:hover .px{display:flex;}
+.padd{aspect-ratio:4/3;border:1.5px dashed #d0d0cc;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#888;font-size:11px;gap:3px;}
+.padd:hover{background:#f5f5f3;}
+.geo-st{font-size:11px;margin-top:4px;height:16px;}
+.geo-ok{color:#3B6D11;}.geo-err{color:#A32D2D;}.geo-ing{color:#BA7517;}
+.setup-banner{padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:12px;}
+.setup-banner.warn{background:#FAEEDA;border:1px solid #EF9F27;color:#633806;}
+.setup-banner.ok{background:#EAF3DE;border:1px solid #97C459;color:#27500A;}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.scard{background:#f5f5f3;border-radius:10px;padding:12px 14px;}
+.slbl{font-size:11px;color:#666;margin-bottom:3px;}
+.sval{font-size:22px;font-weight:500;}
+.ok{color:#3B6D11;}.warn-c{color:#A32D2D;}
+#map-wrap{border-radius:12px;overflow:hidden;border:1px solid #e5e5e2;margin-bottom:14px;height:340px;}
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:600px;}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:#666;border-bottom:1px solid #e5e5e2;white-space:nowrap;}
+.tbl td{padding:8px 10px;border-bottom:1px solid #e5e5e2;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#f9f9f7;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.bok{background:#EAF3DE;color:#3B6D11;}
+.bwarn{background:#FAEEDA;color:#633806;}
+.fbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.fbar input,.fbar select{width:auto;min-width:110px;}
+.empty{text-align:center;padding:40px;color:#888;font-size:13px;line-height:2;}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid #ccc;border-top-color:#333;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;}
+.toast.show{opacity:1;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;overflow-y:auto;padding:20px;}
+.overlay.open{display:block;}
+.modal{background:#fff;border-radius:14px;padding:22px 24px;max-width:580px;margin:0 auto;}
+.modal h3{font-size:15px;font-weight:500;margin-bottom:14px;}
+.dr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e5e5e2;font-size:13px;gap:12px;}
+.dr .l{color:#666;flex-shrink:0;font-size:12px;}
+.dr.col{flex-direction:column;gap:4px;}
+.dr.col .v{font-size:12px;line-height:1.7;}
+.phg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+.phg img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;}
+.sv-btn{padding:4px 13px;border-radius:20px;border:1px solid;cursor:pointer;font-size:12px;font-weight:500;background:transparent;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">26년 안전진단(점검)용역 TBM</div>
+  <div class="conn" id="conn-badge">시트 미연동</div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="go('write')">TBM 작성</div>
+  <div class="tab" onclick="go('dash')">감독 대시보드</div>
+  <div class="tab" onclick="go('setup')" style="display:none;">연동 설정</div>
+</div>
+
+<div class="wrap">
+
+<!-- 설정 -->
+<div id="s-setup" class="sec">
+  <div class="card">
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;">구글 시트 연동 설정</div>
+    <div class="fg">
+      <label>Apps Script 웹 앱 URL</label>
+      <div class="add-row">
+        <input type="text" id="cfg-url" value="https://script.google.com/macros/s/AKfycbyIlII4Gel3p7Hpy4K8pFExbk4CqGzFEn4pTmRjQh9ztMRKQV7Kbgly4rjZedmu17Glbg/exec" readonly style="font-size:10px;color:#888;">
+        <button class="btn btn-sm btn-primary" onclick="saveConfig()">저장</button>
+      </div>
+    </div>
+    <button class="btn btn-sm" onclick="testConn()" style="margin-right:8px;">연결 테스트</button>
+    <span id="test-res" style="font-size:11px;"></span>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px;">용역감독 목록</div>
+    <div class="tw" id="sv-tags"></div>
+    <div class="add-row">
+      <input type="text" id="inp-sv" placeholder="감독 이름 입력 후 추가">
+      <button class="btn btn-sm" onclick="addSv()">추가</button>
+    </div>
+  </div>
+  <div class="card" style="background:#f5f5f3;border-color:#e5e5e2;">
+    <p style="font-size:12px;font-weight:500;margin-bottom:8px;">이 파일 공유 방법</p>
+    <p style="font-size:12px;color:#555;line-height:1.9;">
+      1. 이 HTML 파일을 구글 드라이브에 업로드<br>
+      2. 공유 링크를 업체·감독에게 전송<br>
+      3. 링크 열면 바로 사용 가능 (로그인 불필요)<br>
+      4. 감독은 "감독 대시보드" 탭에서 전체 현황 확인
+    </p>
+  </div>
+</div>
+
+<!-- 작성 -->
+<div id="s-write" class="sec active">
+  <div id="w-banner" class="setup-banner ok">구글 시트 연동됨 — 제출 내용이 자동 저장됩니다</div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <span style="font-size:12px;color:#666;">작업전 TBM 실시 보고</span>
+    <button class="btn btn-sm" onclick="loadLast()">이전 양식 불러오기</button>
+  </div>
+
+  <div class="card" style="border-color:#185FA5;">
+    <div class="ihead"><div class="inum blue">0</div><div class="ititle">용역감독 (대표자)</div></div>
+    <select id="f-supervisor"><option value="">-- 담당 용역감독 선택 --</option></select>
+
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">1</div><div class="ititle">용역명</div></div>
+    <select id="f-project" onchange="toggleCP()">
+      <option>탑정저수지 외 35개소 정밀안전진단 및 정밀안전점검 용역</option>
+      <option>직접입력</option>
+    </select>
+    <div id="cp" style="display:none;margin-top:6px;"><input type="text" id="f-project-custom" placeholder="용역명 직접 입력"></div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">2</div><div class="ititle">작업일시</div></div>
+    <div class="r3">
+      <div class="fg"><label>날짜</label><input type="date" id="f-date"></div>
+      <div class="fg"><label>시작</label><input type="time" id="f-start" value="09:00"></div>
+      <div class="fg"><label>종료</label><input type="time" id="f-end" value="18:00"></div>
+    </div>
+    <div class="fg" style="width:110px;"><label>요일</label>
+      <select id="f-dow"><option>월</option><option>화</option><option>수</option><option>목</option><option>금</option><option>토</option><option>일</option></select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">3</div><div class="ititle">업무계획</div></div>
+    <div class="r2" style="margin-bottom:8px;">
+      <div class="fg"><label>현장명</label><input type="text" id="f-site" placeholder="예) 탑정저수지, 입석갑문"></div>
+      <div class="fg"><label>점검 구분</label>
+        <select id="f-type"><option>정밀안전점검</option><option>정밀안전진단</option><option>긴급안전점검</option><option>정기안전점검</option></select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>현장 주소 <span style="color:#BA7517;">(지도 표시용)</span></label>
+      <div class="add-row">
+        <input type="text" id="f-addr" placeholder="예) 충남 논산시 부적면 탑정리 / 전북 군산시 성산면 입석리">
+        <button class="btn btn-sm" onclick="geocode()">위치 확인</button>
+      </div>
+      <div class="geo-st" id="geo-st"></div>
+      <input type="hidden" id="f-lat"><input type="hidden" id="f-lng">
+      <div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:11px;color:#555;line-height:2;">
+        <div style="font-weight:500;color:#1a1a1a;margin-bottom:4px;">주소 입력 예시</div>
+        <div>✏️ 도로명 주소 : <span style="color:#185FA5;">충남 논산시 가야곡면 육곡리 221</span></div>
+        <div>✏️ 지번 주소 &nbsp;&nbsp;: <span style="color:#185FA5;">전북 군산시 성산면 여방리 1234</span></div>
+        <div>✏️ 시설명+지역 : <span style="color:#185FA5;">탑정저수지 충남 논산</span></div>
+        <div>✏️ 시설명+지역 : <span style="color:#185FA5;">입석갑문 전북 군산</span></div>
+        <div style="margin-top:6px;color:#A32D2D;font-weight:500;">※ 입력 후 반드시 "위치 확인" 버튼을 눌러주세요!</div>
+      </div>
+    </div>
+    <div class="fg"><label>업무 내용</label><textarea id="f-work" placeholder="- 제방, 여수로 외관조사 및 재료시험&#10;- 복통 내부 점검 등"></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">4</div><div class="ititle">시설관리자 통보여부</div></div>
+    <div class="r2">
+      <div class="fg"><label>지사명</label><input type="text" id="f-branch" placeholder="예) 금강청 충남지사"></div>
+      <div class="fg"><label>담당자</label><input type="text" id="f-contact" placeholder="예) 홍길동 과장"></div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:4px;">
+      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;"><input type="checkbox" id="f-notified" checked> 통보완료</label>
+      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;"><input type="checkbox" id="f-not-needed"> 해당없음</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">5</div><div class="ititle">참여인원</div></div>
+    <div class="r2" style="margin-bottom:6px;">
+      <div class="fg"><label>사업책임기술자</label><input type="text" id="f-chief" placeholder="예) 차상철"></div>
+      <div class="fg"><label>외 인원</label><input type="text" id="f-chief-etc" placeholder="예) 외 4인"></div>
+    </div>
+    <div class="fg"><label>참여기술자</label>
+      <div class="tw" id="tags-tech"></div>
+      <div class="add-row"><input type="text" id="inp-tech" placeholder="이름 입력 후 Enter"><button class="btn btn-sm" onclick="addP('tech')">추가</button></div>
+    </div>
+    <div class="fg"><label>지원인력</label>
+      <div class="tw" id="tags-support"></div>
+      <div class="add-row"><input type="text" id="inp-support" placeholder="예) 홍길동(업체명)"><button class="btn btn-sm" onclick="addP('support')">추가</button></div>
+    </div>
+    <div class="fg"><label>보조인부</label>
+      <div class="tw" id="tags-assist"></div>
+      <div class="add-row"><input type="text" id="inp-assist" placeholder="이름 입력"><button class="btn btn-sm" onclick="addP('assist')">추가</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">6</div><div class="ititle">안전교육 및 조치사항</div></div>
+    <div class="pw" id="presets"></div>
+    <div id="safety-list"></div>
+    <button class="btn btn-sm" onclick="addSafety('')">+ 항목 추가</button>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">7</div><div class="ititle">근로자 건강상태</div></div>
+    <div style="display:flex;gap:16px;margin-bottom:8px;">
+      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="health" id="h-ok" checked onchange="toggleH()"> 이상 없음</label>
+      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="health" id="h-issue" onchange="toggleH()"> 특이사항 있음</label>
+    </div>
+    <div id="hd" style="display:none;"><input type="text" id="f-hd" placeholder="예) 홍길동 고열로 인한 작업 제외"></div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">8</div><div class="ititle">위험공종 현황</div></div>
+    <div class="tw" id="tags-danger"></div>
+    <div class="add-row"><input type="text" id="inp-danger" placeholder="예) 고소작업(여수로)"><button class="btn btn-sm" onclick="addP('danger')">추가</button></div>
+    <label style="margin-top:8px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;"><input type="checkbox" id="f-sep"> 해당 공종 안전조치 별도 보고 예정</label>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">9</div><div class="ititle">기타 특이사항</div></div>
+    <div style="display:flex;gap:16px;margin-bottom:6px;">
+      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="etc" value="없음" checked onchange="toggleE()"> 없음</label>
+      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="etc" value="있음" onchange="toggleE()"> 있음</label>
+    </div>
+    <div id="ed" style="display:none;"><textarea id="f-etc" placeholder="특이사항 내용"></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="ihead"><div class="inum">10</div><div class="ititle">관련증빙 (사진)</div></div>
+    <div class="pgrid" id="pgrid"></div>
+    <input type="file" id="pi" accept="image/*" multiple style="display:none;" onchange="handlePhotos(event)">
+    <p style="font-size:11px;color:#888;margin-top:6px;">사진 위에 마우스를 올리면 삭제 버튼이 나타납니다.</p>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:8px;padding-bottom:20px;">
+    <button class="btn" onclick="resetForm()">초기화</button>
+    <button class="btn btn-primary" id="submit-btn" onclick="submitTBM()">TBM 제출</button>
+  </div>
+</div>
+
+<!-- 대시보드 -->
+<div id="s-dash" class="sec">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <span style="font-size:13px;font-weight:500;">전체 현황</span>
+    <button class="btn btn-sm" onclick="fetchDash()" id="refresh-btn">새로고침</button>
+  </div>
+  <div class="sgrid" id="sgrid"></div>
+  <div id="sv-filter" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+  <div id="map-wrap"><div id="map" style="width:100%;height:340px;"></div></div>
+  <div class="fbar">
+    <input type="date" id="d-date" oninput="applyFilter()">
+    <select id="d-sv" oninput="applyFilter()"><option value="">전체 감독</option></select>
+    <select id="d-site" oninput="applyFilter()"><option value="">전체 현장</option></select>
+    <button class="btn btn-sm" onclick="clearFilter()">초기화</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>날짜</th><th>감독</th><th>현장명</th><th>주소</th>
+          <th>책임기술자</th><th>인원</th><th>안전조치</th><th>건강</th><th>사진</th><th></th>
+        </tr></thead>
+        <tbody id="dash-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="toast" id="toast"></div>
+<div class="overlay" id="ov" onclick="closeOv(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
+
+<script>
+const today = new Date().toISOString().slice(0,10);
+let cfg = {url:"https://script.google.com/macros/s/AKfycbyIlII4Gel3p7Hpy4K8pFExbk4CqGzFEn4pTmRjQh9ztMRKQV7Kbgly4rjZedmu17Glbg/exec", supervisors:["1반 김현중", "2반 김인수", "3반 전효묵", "4반 황일환", "5반 조항준"]};
+let localRecs = JSON.parse(localStorage.getItem('tbm_local')||'[]');
+let allRecs = [];
+let ppl={tech:[],support:[],assist:[],danger:[]};
+let safeties=[],photos=[];
+let map=null,markers=[];
+
+const SV_COLORS=['#185FA5','#3B6D11','#993C1D','#534AB7','#854F0B','#0F6E56'];
+const PRESETS=['구명조끼 등 개인보호구 착용','2인 1조 작업 지시','고소작업 추락·미끄럼 주의','구급함 비치·충분한 휴식·수분섭취','복통조사 시 유해가스 수시확인','복통조사 시 감시인원 배치','뱀·독충 안전사고 주의','안전대·안전로프 비치','수변작업 구명환 비치','온열질환 대비 수분섭취 철저'];
+
+function init(){
+  document.getElementById('f-date').value=today;
+  loadConfig();
+  document.getElementById('presets').innerHTML=PRESETS.map(p=>
+    `<button class="pb" onclick="addSafety('${p.replace(/'/g,"\\'")}')">+ ${p.length>13?p.slice(0,13)+'…':p}</button>`
+  ).join('');
+  ['inp-tech','inp-support','inp-assist','inp-danger'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addP(id.replace('inp-',''));}});
+  });
+  document.getElementById('f-addr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();geocode();}});
+  const inpSv=document.getElementById('inp-sv');if(inpSv)inpSv.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSv();}});
+  renderPhotos();
+}
+
+function loadConfig(){
+  document.getElementById('cfg-url').value = cfg.url;
+  renderSvTags();renderSvSelect();updateBanner();
+}
+
+function saveConfig(){
+  cfg.supervisors = JSON.parse(localStorage.getItem('tbm_supervisors')||'[]');
+  localStorage.setItem('tbm_supervisors',JSON.stringify(cfg.supervisors));
+  updateBanner();showToast('감독 목록 저장됨');
+}
+
+function updateBanner(){
+  const b=document.getElementById('w-banner');
+  const badge=document.getElementById('conn-badge');
+  if(cfg.url){
+    b.className='setup-banner ok';
+    b.textContent='구글 시트 연동됨 — 제출 내용이 시트에 자동 저장됩니다';
+    badge.className='conn ok';badge.textContent='시트 연동됨';
+  }else{
+    b.className='setup-banner warn';
+    b.textContent='구글 시트 연동됨 — 제출 내용이 자동 저장됩니다';
+    badge.className='conn';badge.textContent='시트 미연동';
+  }
+}
+
+function addSv(){
+  const inp=document.getElementById('inp-sv');
+  const n=inp.value.trim();
+  if(!n||cfg.supervisors.includes(n))return;
+  cfg.supervisors.push(n);
+  localStorage.setItem('tbm_supervisors',JSON.stringify(cfg.supervisors));
+  renderSvTags();renderSvSelect();inp.value='';
+}
+function removeSv(i){cfg.supervisors.splice(i,1);localStorage.setItem('tbm_supervisors',JSON.stringify(cfg.supervisors));renderSvTags();renderSvSelect();}
+function renderSvTags(){
+  document.getElementById('sv-tags').innerHTML=cfg.supervisors.map((n,i)=>
+    `<span class="tag">${n}<button onclick="removeSv(${i})">×</button></span>`
+  ).join('');
+}
+function renderSvSelect(){
+  const sel=document.getElementById('f-supervisor');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- 담당 용역감독 선택 --</option>'+
+    cfg.supervisors.map(n=>`<option value="${n}" ${n===cur?'selected':''}>${n}</option>`).join('');
+}
+
+async function testConn(){
+  const url=document.getElementById('cfg-url').value.trim();
+  const el=document.getElementById('test-res');
+  if(!url){el.style.color='#A32D2D';el.textContent='URL을 먼저 입력해주세요.';return;}
+  el.style.color='#BA7517';el.textContent='테스트 중...';
+  try{
+    const r=await fetch(url);
+    const d=await r.json();
+    if(d.result==='success'){el.style.color='#3B6D11';el.textContent='연결 성공!';}
+    else{el.style.color='#A32D2D';el.textContent='오류: '+d.message;}
+  }catch(e){el.style.color='#A32D2D';el.textContent='연결 실패 — URL을 확인해주세요.';}
+}
+
+function toggleCP(){document.getElementById('cp').style.display=document.getElementById('f-project').value==='직접입력'?'block':'none';}
+function toggleH(){document.getElementById('hd').style.display=document.getElementById('h-issue').checked?'block':'none';}
+function toggleE(){document.getElementById('ed').style.display=document.querySelector('input[name="etc"]:checked').value==='있음'?'block':'none';}
+
+function addP(t){
+  const inp=document.getElementById('inp-'+t);
+  const n=inp.value.trim();if(!n)return;
+  ppl[t].push(n);renderTags(t);inp.value='';
+}
+function removeP(t,i){ppl[t].splice(i,1);renderTags(t);}
+function renderTags(t){
+  document.getElementById('tags-'+t).innerHTML=ppl[t].map((n,i)=>
+    `<span class="tag">✓ ${n}<button onclick="removeP('${t}',${i})">×</button></span>`
+  ).join('');
+}
+
+function addSafety(val){
+  val=val||'';
+  const idx=safeties.length;safeties.push(val);
+  const d=document.createElement('div');d.className='si';d.id='si-'+idx;
+  d.innerHTML=`<textarea oninput="safeties[${idx}]=this.value" placeholder="안전조치사항">${val}</textarea><button class="btn btn-sm btn-red" onclick="rmS(${idx})">삭제</button>`;
+  document.getElementById('safety-list').appendChild(d);
+}
+function rmS(i){const el=document.getElementById('si-'+i);if(el)el.remove();safeties[i]=null;}
+
+function compressImage(file, callback){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        if(w > h){h = Math.round(h*MAX/w);w=MAX;}
+        else{w=Math.round(w*MAX/h);h=MAX;}
+      }
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      callback(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePhotos(e){
+  Array.from(e.target.files).forEach(f=>{
+    compressImage(f, function(compressed){
+      photos.push(compressed);
+      renderPhotos();
+    });
+  });
+  e.target.value='';
+}
+function rmPhoto(i){photos.splice(i,1);renderPhotos();}
+function renderPhotos(){
+  document.getElementById('pgrid').innerHTML=
+    photos.map((s,i)=>`<div class="pbox"><img src="${s}"><button class="px" onclick="rmPhoto(${i})">×</button></div>`).join('')+
+    `<div class="padd" onclick="document.getElementById('pi').click()"><span style="font-size:22px;font-weight:300;">+</span><span>사진 추가</span></div>`;
+}
+
+function geocode(){
+  const addr=document.getElementById('f-addr').value.trim();
+  if(!addr)return;
+  const st=document.getElementById('geo-st');
+  st.className='geo-st geo-ing';st.textContent='위치 검색 중...';
+  const geocoder = new kakao.maps.services.Geocoder();
+  geocoder.addressSearch(addr, function(result, status){
+    if(status===kakao.maps.services.Status.OK){
+      document.getElementById('f-lat').value=result[0].y;
+      document.getElementById('f-lng').value=result[0].x;
+      st.className='geo-st geo-ok';
+      st.textContent='✓ '+result[0].address_name;
+    } else {
+      // 주소 검색 실패시 키워드 검색 시도
+      const ps = new kakao.maps.services.Places();
+      ps.keywordSearch(addr, function(result, status){
+        if(status===kakao.maps.services.Status.OK){
+          document.getElementById('f-lat').value=result[0].y;
+          document.getElementById('f-lng').value=result[0].x;
+          st.className='geo-st geo-ok';
+          st.textContent='✓ '+result[0].place_name+' ('+result[0].address_name+')';
+        } else {
+          st.className='geo-st geo-err';
+          st.textContent='✗ 위치를 찾을 수 없습니다. 주소를 더 구체적으로 입력해주세요.';
+        }
+      });
+    }
+  });
+}
+
+function getProject(){
+  return document.getElementById('f-project').value==='직접입력'
+    ?document.getElementById('f-project-custom').value.trim()
+    :document.getElementById('f-project').value;
+}
+
+async function submitTBM(){
+  const date=document.getElementById('f-date').value;
+  const site=document.getElementById('f-site').value.trim();
+  const work=document.getElementById('f-work').value.trim();
+  const chief=document.getElementById('f-chief').value.trim();
+  const supervisor=document.getElementById('f-supervisor').value;
+  if(!supervisor){showToast('용역감독을 선택해주세요.');return;}
+  if(!date||!site||!work||!chief){showToast('날짜, 현장명, 업무내용, 책임기술자는 필수입니다.');return;}
+
+  const rec={
+    id:Date.now(),supervisor,project:getProject(),date,
+    dow:document.getElementById('f-dow').value,
+    start:document.getElementById('f-start').value,
+    end:document.getElementById('f-end').value,
+    site,addr:document.getElementById('f-addr').value.trim(),
+    lat:parseFloat(document.getElementById('f-lat').value)||null,
+    lng:parseFloat(document.getElementById('f-lng').value)||null,
+    type:document.getElementById('f-type').value,work,
+    branch:document.getElementById('f-branch').value.trim(),
+    contact:document.getElementById('f-contact').value.trim(),
+    notified:document.getElementById('f-notified').checked,
+    notNeeded:document.getElementById('f-not-needed').checked,
+    chief:chief+' '+(document.getElementById('f-chief-etc').value.trim()),
+    tech:[...ppl.tech],support:[...ppl.support],assist:[...ppl.assist],
+    safeties:safeties.filter(s=>s&&s.trim()),
+    health:document.getElementById('h-ok').checked?'이상 없음':document.getElementById('f-hd').value.trim()||'특이사항',
+    dangers:[...ppl.danger],
+    separateReport:document.getElementById('f-sep').checked,
+    etc:document.querySelector('input[name="etc"]:checked').value==='있음'?document.getElementById('f-etc').value.trim():'없음',
+    photos:[...photos],
+    totalPeople:1+ppl.tech.length+ppl.support.length+ppl.assist.length
+  };
+
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>제출 중...';
+
+  if(cfg.url){
+    try{
+      await fetch(cfg.url,{method:'POST',mode:'no-cors',body:JSON.stringify(rec),headers:{'Content-Type':'text/plain'}});
+      showToast('TBM이 구글 시트에 저장되었습니다!');
+    }catch(e){showToast('저장됨 (로컬)');}
+  }else{
+    showToast('저장됨 (로컬 — 시트 미연동)');
+  }
+
+  localRecs.unshift(rec);
+  try{localStorage.setItem('tbm_local',JSON.stringify(localRecs));}catch(e){}
+  btn.disabled=false;btn.textContent='TBM 제출';
+  resetForm();
+}
+
+function resetForm(){
+  ['f-site','f-addr','f-work','f-branch','f-contact','f-chief','f-chief-etc','f-hd','f-etc','f-lat','f-lng'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('f-date').value=today;
+  document.getElementById('h-ok').checked=true;
+  document.getElementById('hd').style.display='none';
+  document.getElementById('ed').style.display='none';
+  document.getElementById('f-notified').checked=true;
+  document.getElementById('f-not-needed').checked=false;
+  document.getElementById('f-sep').checked=false;
+  document.getElementById('geo-st').textContent='';
+  ppl={tech:[],support:[],assist:[],danger:[]};
+  ['tech','support','assist','danger'].forEach(renderTags);
+  safeties=[];photos=[];
+  document.getElementById('safety-list').innerHTML='';
+  renderPhotos();
+}
+
+function loadLast(){
+  if(!localRecs.length){showToast('이전 기록이 없습니다.');return;}
+  const r=localRecs[0];
+  document.getElementById('f-supervisor').value=r.supervisor||'';
+  document.getElementById('f-site').value=r.site||'';
+  document.getElementById('f-addr').value=r.addr||'';
+  document.getElementById('f-lat').value=r.lat||'';
+  document.getElementById('f-lng').value=r.lng||'';
+  document.getElementById('f-work').value=r.work||'';
+  document.getElementById('f-branch').value=r.branch||'';
+  document.getElementById('f-contact').value=r.contact||'';
+  const cp=(r.chief||'').trim();
+  const si=cp.lastIndexOf(' 외 ');
+  if(si>-1){document.getElementById('f-chief').value=cp.slice(0,si);document.getElementById('f-chief-etc').value=cp.slice(si+1);}
+  else document.getElementById('f-chief').value=cp;
+  if(r.lat&&r.lng){const st=document.getElementById('geo-st');st.className='geo-st geo-ok';st.textContent='✓ 이전 위치 불러옴';}
+  ppl={tech:[...(r.tech||[])],support:[...(r.support||[])],assist:[...(r.assist||[])],danger:[...(r.dangers||[])]};
+  ['tech','support','assist','danger'].forEach(renderTags);
+  safeties=[];document.getElementById('safety-list').innerHTML='';
+  (r.safeties||[]).forEach(s=>addSafety(s));
+  photos=[];renderPhotos();
+  showToast('이전 양식을 불러왔습니다.');
+}
+
+async function fetchDash(){
+  const btn=document.getElementById('refresh-btn');
+  btn.innerHTML='<span class="spin"></span>';
+  let fetched=[];
+  if(cfg.url){
+    try{
+      const r=await fetch(cfg.url+'?t='+Date.now());
+      const d=await r.json();
+      if(d.result==='success'&&d.records){
+        fetched=d.records.map(row=>({
+          supervisor:row['용역감독']||'',
+          date:row['날짜']||'',dow:row['요일']||'',
+          start:row['시작']||'',end:row['종료']||'',
+          site:row['현장명']||'',addr:row['주소']||'',
+          chief:row['책임기술자']||'',
+          totalPeople:parseInt(row['총인원'])||0,
+          safeties:(row['안전조치사항']||'').split(' / ').filter(Boolean),
+          health:row['건강상태']||'이상 없음',
+          dangers:(row['위험공종']||'').split(', ').filter(Boolean),
+          photos:Array(parseInt(row['사진수'])||0).fill(''),
+          project:row['용역명']||'',
+          branch:row['지사명']||'',contact:row['담당자']||'',
+          work:row['업무내용']||'',etc:row['기타특이사항']||'없음',
+          type:row['점검구분']||'',
+          lat:parseFloat(row['위도'])||null,
+          lng:parseFloat(row['경도'])||null,
+          photoLinks:(row['사진링크']||'').split('\n').filter(Boolean),
+          id:Math.random()
+        }));
+      }
+    }catch(e){console.warn('시트 로드 실패');}
+  }
+  allRecs=fetched.length?fetched:[...localRecs];
+
+  btn.textContent='새로고침';
+  renderDash(allRecs);
+}
+
+function applyFilter(){
+  const fd=document.getElementById('d-date').value;
+  const fsv=document.getElementById('d-sv').value;
+  const fsite=document.getElementById('d-site').value;
+  renderDash(allRecs.filter(r=>{
+    if(fd&&r.date!==fd)return false;
+    if(fsv&&r.supervisor!==fsv)return false;
+    if(fsite&&r.site!==fsite)return false;
+    return true;
+  }));
+}
+
+function renderDash(recs){
+  const tR=recs.filter(r=>r.date===today);
+  const mR=allRecs.filter(r=>r.date&&r.date.startsWith(today.slice(0,7)));
+  const svSet=[...new Set(allRecs.map(r=>r.supervisor).filter(Boolean))];
+  const siteSet=[...new Set(allRecs.map(r=>r.site).filter(Boolean))];
+
+  document.getElementById('sgrid').innerHTML=`
+    <div class="scard"><div class="slbl">전체 제출</div><div class="sval">${allRecs.length}</div></div>
+    <div class="scard"><div class="slbl">오늘 제출</div><div class="sval ok">${tR.length}</div></div>
+    <div class="scard"><div class="slbl">이번 달</div><div class="sval">${mR.length}</div></div>
+    <div class="scard"><div class="slbl">건강이상</div><div class="sval warn-c">${allRecs.filter(r=>r.health&&r.health!=='이상 없음').length}</div></div>
+  `;
+
+  const svFilter=document.getElementById('sv-filter');
+  const curSv=document.getElementById('d-sv').value;
+  svFilter.innerHTML=svSet.map((sv,i)=>{
+    const color=SV_COLORS[i%SV_COLORS.length];
+    const cnt=allRecs.filter(r=>r.supervisor===sv).length;
+    const active=curSv===sv;
+    return `<button class="sv-btn" onclick="filterBySv('${sv}')" style="border-color:${color};color:${active?'#fff':color};background:${active?color:'transparent'};">${sv} (${cnt})</button>`;
+  }).join('');
+
+  const ds=document.getElementById('d-sv'),dsite=document.getElementById('d-site');
+  const sv=ds.value,site=dsite.value;
+  ds.innerHTML='<option value="">전체 감독</option>'+svSet.map(s=>`<option ${s===sv?'selected':''}>${s}</option>`).join('');
+  dsite.innerHTML='<option value="">전체 현장</option>'+siteSet.map(s=>`<option ${s===site?'selected':''}>${s}</option>`).join('');
+
+  initMap();
+  markers.forEach(m=>m.setMap(null));markers=[];
+  const svIdx={};svSet.forEach((sv,i)=>svIdx[sv]=i);
+  const geoRecs=recs.filter(r=>r.lat&&r.lng);
+  const bounds=[];
+  geoRecs.forEach(r=>{
+    const color=SV_COLORS[(svIdx[r.supervisor]||0)%SV_COLORS.length];
+    const pos=new kakao.maps.LatLng(r.lat,r.lng);
+    const content=`<div style="background:${color};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;white-space:nowrap;box-shadow:0 1px 5px rgba(0,0,0,0.3);cursor:pointer;">${r.site}</div>`;
+    const overlay=new kakao.maps.CustomOverlay({position:pos,content:content,yAnchor:1});
+    overlay.setMap(map);
+    const infowindow=new kakao.maps.InfoWindow({
+      content:`<div style="padding:10px;font-size:12px;line-height:1.8;min-width:160px;"><b>${r.site}</b><br>감독: ${r.supervisor||'—'}<br>${r.date}(${r.dow||''}) ${r.start||''}~${r.end||''}<br>${r.addr||''}<br>책임: ${r.chief}<br>인원: ${r.totalPeople}명</div>`
+    });
+    kakao.maps.event.addListener(overlay,'click',function(){infowindow.open(map,new kakao.maps.Marker({position:pos}));});
+    markers.push(overlay);
+    bounds.push(pos);
+  });
+  if(bounds.length>1){
+    const b=new kakao.maps.LatLngBounds();
+    bounds.forEach(p=>b.extend(p));
+    map.setBounds(b);
+  } else if(bounds.length===1){
+    map.setCenter(bounds[0]);map.setLevel(5);
+  }
+
+  const tb=document.getElementById('dash-body');
+  if(!recs.length){
+    tb.innerHTML=`<tr><td colspan="10"><div class="empty">데이터가 없습니다.<br>${cfg.url?'새로고침을 눌러주세요.':'TBM을 제출하면 여기에 표시됩니다.'}</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=recs.map(r=>{
+    const ci=svSet.indexOf(r.supervisor);
+    const color=ci>=0?SV_COLORS[ci%SV_COLORS.length]:'#888';
+    return `<tr>
+      <td>${r.date}(${r.dow||''})</td>
+      <td><span style="color:${color};font-weight:500;">${r.supervisor||'—'}</span></td>
+      <td title="${r.site}">${r.site}</td>
+      <td style="font-size:11px;color:#666;" title="${r.addr||''}">${r.addr?(r.addr.length>12?r.addr.slice(0,12)+'…':r.addr):'—'}</td>
+      <td>${r.chief}</td>
+      <td>${r.totalPeople}명</td>
+      <td>${(r.safeties||[]).length}건</td>
+      <td><span class="badge ${r.health==='이상 없음'?'bok':'bwarn'}">${r.health==='이상 없음'?'이상없음':'이상있음'}</span></td>
+      <td>${(r.photos||[]).length}장</td>
+      <td><button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterBySv(sv){const ds=document.getElementById('d-sv');ds.value=ds.value===sv?'':sv;applyFilter();}
+function clearFilter(){document.getElementById('d-date').value='';document.getElementById('d-sv').value='';document.getElementById('d-site').value='';applyFilter();}
+
+function initMap(){
+  if(map)return;
+  const container=document.getElementById('map');
+  if(!container)return;
+  const options={center:new kakao.maps.LatLng(36.5,127.8),level:13};
+  map=new kakao.maps.Map(container,options);
+}
+
+function showDetail(r){
+  const svSet=[...new Set(allRecs.map(x=>x.supervisor).filter(Boolean))];
+  const ci=svSet.indexOf(r.supervisor);
+  const color=ci>=0?SV_COLORS[ci%SV_COLORS.length]:'#888';
+  document.getElementById('modal').innerHTML=`
+    <h3>26년 안전진단(점검)용역 TBM</h3>
+    <div class="dr"><span class="l">용역감독</span><span style="color:${color};font-weight:500;">${r.supervisor||'—'}</span></div>
+    <div class="dr"><span class="l">① 용역명</span><span style="font-size:11px;">${r.project}</span></div>
+    <div class="dr"><span class="l">② 작업일시</span><span>${r.date}(${r.dow||''}) ${r.start||''}~${r.end||''}</span></div>
+    <div class="dr col"><span class="l">③ 업무계획</span><span class="v">${r.site} ${r.addr?'('+r.addr+')':''}<br>${(r.work||'').replace(/\n/g,'<br>')}</span></div>
+    <div class="dr"><span class="l">④ 시설관리자</span><span>${r.notNeeded?'해당없음':(r.notified?'통보완료':'미통보')} ${r.branch||''} ${r.contact||''}</span></div>
+    <div class="dr col"><span class="l">⑤ 참여인원</span><span class="v">책임: ${r.chief}<br>${r.tech&&r.tech.length?'기술자: '+r.tech.join(', ')+'<br>':''}${r.support&&r.support.length?'지원: '+r.support.join(', ')+'<br>':''}${r.assist&&r.assist.length?'보조: '+r.assist.join(', '):''}</span></div>
+    ${r.safeties&&r.safeties.length?`<div class="dr col"><span class="l">⑥ 안전조치</span><span class="v">${r.safeties.map(s=>'- '+s).join('<br>')}</span></div>`:''}
+    <div class="dr"><span class="l">⑦ 건강상태</span><span>${r.health}</span></div>
+    <div class="dr"><span class="l">⑧ 위험공종</span><span>${(r.dangers||[]).join(', ')||'없음'}</span></div>
+    <div class="dr"><span class="l">⑨ 기타</span><span>${r.etc||'없음'}</span></div>
+    ${(r.photoLinks&&r.photoLinks.length)?`<div class="dr col"><span class="l">⑩ 사진 (${r.photoLinks.length}장)</span><div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">${r.photoLinks.map((link,i)=>`<a href="${link}" target="_blank" style="font-size:12px;color:#185FA5;">📷 사진 ${i+1} 보기 (드라이브)</a>`).join('')}</div></div>`:(r.photos&&r.photos.filter(p=>p).length?`<div class="dr col"><span class="l">⑩ 사진 (${r.photos.length}장)</span><div class="phg">${r.photos.filter(p=>p).map(s=>`<img src="${s}">`).join('')}</div></div>`:'')}
+    <div style="text-align:right;margin-top:14px;"><button class="btn" onclick="document.getElementById('ov').classList.remove('open')">닫기</button></div>
+  `;
+  document.getElementById('ov').classList.add('open');
+}
+
+function closeOv(e){if(e.target.id==='ov')document.getElementById('ov').classList.remove('open');}
+
+function go(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['write','dash','setup'][i]===t));
+  document.querySelectorAll('.sec').forEach(el=>el.classList.remove('active'));
+  document.getElementById('s-'+t).classList.add('active');
+  if(t==='dash')fetchDash();
+}
+
+function addSvMain(){
+  const inp = document.getElementById('inp-sv-main');
+  const n = inp.value.trim();
+  if(!n || cfg.supervisors.includes(n)) return;
+  cfg.supervisors.push(n);
+  localStorage.setItem('tbm_supervisors', JSON.stringify(cfg.supervisors));
+  renderSvSelect();
+  document.getElementById('f-supervisor').value = n;
+  inp.value = '';
+  showToast(n + ' 감독 추가됨');
+}
+
+function rmSvMain(){
+  if(!cfg.supervisors.length) return;
+  const removed = cfg.supervisors.pop();
+  localStorage.setItem('tbm_supervisors', JSON.stringify(cfg.supervisors));
+  renderSvSelect();
+  showToast(removed + ' 삭제됨');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+kakao.maps.load(function(){ init(); });
+</script>
+</body>
+</html>
