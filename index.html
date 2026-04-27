@@ -3,8 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TBM관리">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#1a1a1a">
 <title>26년 안전진단(점검)용역 TBM</title>
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=7640bd679ef467920c8c1f6daa9e053e&libraries=services&autoload=false"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;}
@@ -96,7 +103,12 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
 
 <div class="top-bar">
   <div class="logo">26년 안전진단(점검)용역 TBM</div>
+  <div style="display:flex;align-items:center;gap:8px;">
   <div class="conn" id="conn-badge">시트 미연동</div>
+  <button onclick="shareKakao()" style="background:#FEE500;color:#3C1E1E;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px;">
+    <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" style="width:16px;height:16px;"> 공유
+  </button>
+</div>
 </div>
 
 <div class="tab-bar">
@@ -652,14 +664,20 @@ function applyFilter(){
 }
 
 function renderDash(recs){
-  const tR=recs.filter(r=>r.date===today);
+  const tR=allRecs.filter(r=>r.date&&r.date.slice(0,10)===today);
   const mR=allRecs.filter(r=>r.date&&r.date.startsWith(today.slice(0,7)));
   const svSet=[...new Set(allRecs.map(r=>r.supervisor).filter(Boolean))];
   const siteSet=[...new Set(allRecs.map(r=>r.site).filter(Boolean))];
 
   document.getElementById('sgrid').innerHTML=`
-    <div class="scard"><div class="slbl">전체 제출</div><div class="sval">${allRecs.length}</div></div>
-    <div class="scard"><div class="slbl">오늘 제출</div><div class="sval ok">${tR.length}</div></div>
+    <div class="scard" onclick="clearFilter()" style="cursor:pointer;" title="전체 보기">
+      <div class="slbl">전체 제출</div><div class="sval">${allRecs.length}</div>
+    </div>
+    <div class="scard" onclick="filterToday()" style="cursor:pointer;border:2px solid #3B6D11;" title="오늘 작업 현장 보기">
+      <div class="slbl">🟢 오늘 작업 <span style="font-size:10px;">(클릭)</span></div>
+      <div class="sval ok">${tR.length}</div>
+      <div style="font-size:10px;color:#3B6D11;margin-top:2px;">${tR.length}개 현장 작업중</div>
+    </div>
     <div class="scard"><div class="slbl">이번 달</div><div class="sval">${mR.length}</div></div>
     <div class="scard"><div class="slbl">건강이상</div><div class="sval warn-c">${allRecs.filter(r=>r.health&&r.health!=='이상 없음').length}</div></div>
   `;
@@ -713,7 +731,7 @@ function renderDash(recs){
     const ci=svSet.indexOf(r.supervisor);
     const color=ci>=0?SV_COLORS[ci%SV_COLORS.length]:'#888';
     return `<tr>
-      <td>${r.date}(${r.dow||''})</td>
+      <td style="white-space:nowrap;">${r.date?r.date.slice(0,10):''}(${r.dow||''})<br><span style="font-size:10px;color:#666;">${r.start||''}~${r.end||''}</span></td>
       <td><span style="color:${color};font-weight:500;">${r.supervisor||'—'}</span></td>
       <td title="${r.site}">${r.site}</td>
       <td style="font-size:11px;color:#666;" title="${r.addr||''}">${r.addr?(r.addr.length>12?r.addr.slice(0,12)+'…':r.addr):'—'}</td>
@@ -729,6 +747,26 @@ function renderDash(recs){
 
 function filterBySv(sv){const ds=document.getElementById('d-sv');ds.value=ds.value===sv?'':sv;applyFilter();}
 function clearFilter(){document.getElementById('d-date').value='';document.getElementById('d-sv').value='';document.getElementById('d-site').value='';applyFilter();}
+
+function filterToday(){
+  // 오늘 날짜로 필터 + 현재 시간 기준 작업중인 현장
+  const now = new Date();
+  const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('d-date').value = today;
+  document.getElementById('d-sv').value = '';
+  document.getElementById('d-site').value = '';
+  
+  const filtered = allRecs.filter(r => {
+    if(!r.date || r.date.slice(0,10) !== today) return false;
+    // 작업 시간 범위 체크
+    const start = r.start || '00:00';
+    const end = r.end || '23:59';
+    return hhmm >= start && hhmm <= end;
+  });
+  
+  renderDash(filtered);
+  showToast('현재 시각 ' + hhmm + ' 기준 작업중인 현장: ' + filtered.length + '개');
+}
 
 function initMap(){
   if(map)return;
@@ -746,7 +784,7 @@ function showDetail(r){
     <h3>26년 안전진단(점검)용역 TBM</h3>
     <div class="dr"><span class="l">용역감독</span><span style="color:${color};font-weight:500;">${r.supervisor||'—'}</span></div>
     <div class="dr"><span class="l">① 용역명</span><span style="font-size:11px;">${r.project}</span></div>
-    <div class="dr"><span class="l">② 작업일시</span><span>${r.date}(${r.dow||''}) ${r.start||''}~${r.end||''}</span></div>
+    <div class="dr"><span class="l">② 작업일시</span><span>${r.date?r.date.slice(0,10):''}(${r.dow||''}) ${r.start||'09:00'}~${r.end||'18:00'}</span></div>
     <div class="dr col"><span class="l">③ 업무계획</span><span class="v">${r.site} ${r.addr?'('+r.addr+')':''}<br>${(r.work||'').replace(/\n/g,'<br>')}</span></div>
     <div class="dr"><span class="l">④ 시설관리자</span><span>${r.notNeeded?'해당없음':(r.notified?'통보완료':'미통보')} ${r.branch||''} ${r.contact||''}</span></div>
     <div class="dr col"><span class="l">⑤ 참여인원</span><span class="v">책임: ${r.chief}<br>${r.tech&&r.tech.length?'기술자: '+r.tech.join(', ')+'<br>':''}${r.support&&r.support.length?'지원: '+r.support.join(', ')+'<br>':''}${r.assist&&r.assist.length?'보조: '+r.assist.join(', '):''}</span></div>
@@ -796,6 +834,42 @@ function showToast(msg){
 }
 
 kakao.maps.load(function(){ init(); });
+
+// 카카오 공유 초기화
+if(window.Kakao && !Kakao.isInitialized()){
+  Kakao.init('7640bd679ef467920c8c1f6daa9e053e');
+}
+
+function shareKakao(){
+  if(!window.Kakao){showToast('카카오 SDK 로딩 중입니다.');return;}
+  if(!Kakao.isInitialized()) Kakao.init('7640bd679ef467920c8c1f6daa9e053e');
+  Kakao.Share.sendDefault({
+    objectType: 'feed',
+    content: {
+      title: '26년 안전진단(점검)용역 TBM',
+      description: '작업전 TBM 실시 보고 — 여기를 눌러 작성해주세요!',
+      imageUrl: 'https://kwak2772-arch.github.io/-TBM/icon.svg',
+      link: {
+        mobileWebUrl: 'https://kwak2772-arch.github.io/-TBM/',
+        webUrl: 'https://kwak2772-arch.github.io/-TBM/'
+      }
+    },
+    buttons: [{
+      title: 'TBM 작성하기',
+      link: {
+        mobileWebUrl: 'https://kwak2772-arch.github.io/-TBM/',
+        webUrl: 'https://kwak2772-arch.github.io/-TBM/'
+      }
+    }]
+  });
+}
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
