@@ -177,7 +177,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
   <div class="card">
     <div class="ihead"><div class="inum">1</div><div class="ititle">용역명</div></div>
     <select id="f-project" onchange="toggleCP()">
-      <option>탑정저수지 외 35개소 정밀안전진단 및 정밀안전점검 용역</option>
+      <option>OO저수지 외 OO개소 정밀안전진단 및 정밀안전점검 용역</option>
       <option>직접입력</option>
     </select>
     <div id="cp" style="display:none;margin-top:6px;"><input type="text" id="f-project-custom" placeholder="용역명 직접 입력"></div>
@@ -186,7 +186,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
   <div class="card">
     <div class="ihead"><div class="inum">2</div><div class="ititle">작업일시</div></div>
     <div class="r3">
-      <div class="fg"><label>날짜</label><input type="date" id="f-date"></div>
+      <div class="fg"><label>날짜</label><input type="date" id="f-date" onchange="autoSetDow()"></div>
       <div class="fg"><label>시작</label><input type="time" id="f-start" value="09:00"></div>
       <div class="fg"><label>종료</label><input type="time" id="f-end" value="18:00"></div>
     </div>
@@ -198,7 +198,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
   <div class="card">
     <div class="ihead"><div class="inum">3</div><div class="ititle">업무계획</div></div>
     <div class="r2" style="margin-bottom:8px;">
-      <div class="fg"><label>현장명</label><input type="text" id="f-site" placeholder="예) 탑정저수지, 입석갑문"></div>
+      <div class="fg"><label>현장명</label><input type="text" id="f-site" placeholder="예) OO저수지, OO방조제, OO배수장, OO배수문"></div>
       <div class="fg"><label>점검 구분</label>
         <select id="f-type"><option>정밀안전점검</option><option>정밀안전진단</option><option>긴급안전점검</option><option>정기안전점검</option></select>
       </div>
@@ -226,38 +226,38 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
   <div class="card">
     <div class="ihead"><div class="inum">4</div><div class="ititle">시설관리자 통보여부</div></div>
     <div class="r2">
-      <div class="fg"><label>지사명</label><input type="text" id="f-branch" placeholder="예) 금강청 충남지사"></div>
-      <div class="fg"><label>담당자</label><input type="text" id="f-contact" placeholder="예) 홍길동 과장"></div>
+      <div class="fg"><label>지사명</label><input type="text" id="f-branch" placeholder="예) OO본부 OO지사"></div>
+      <div class="fg"><label>담당자</label><input type="text" id="f-contact" placeholder="예) OOO 과장"></div>
     </div>
     <div style="display:flex;gap:16px;margin-top:4px;">
       <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;"><input type="checkbox" id="f-notified" checked> 통보완료</label>
-      <label style="margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;"><input type="checkbox" id="f-not-needed"> 해당없음</label>
+
     </div>
   </div>
 
   <div class="card">
     <div class="ihead"><div class="inum">5</div><div class="ititle">참여인원</div></div>
     <div class="r2" style="margin-bottom:6px;">
-      <div class="fg"><label>사업책임기술자</label><input type="text" id="f-chief" placeholder="예) 차상철"></div>
-      <div class="fg"><label>외 인원</label><input type="text" id="f-chief-etc" placeholder="예) 외 4인"></div>
+      <div class="fg"><label>사업책임기술자</label><input type="text" id="f-chief" placeholder="예) OOO"></div>
+      <div class="fg"><label>외 인원</label><input type="text" id="f-chief-etc" placeholder="예) 외 O인"></div>
     </div>
     <div class="fg"><label>참여기술자</label>
       <div class="tw" id="tags-tech"></div>
-      <div class="add-row"><input type="text" id="inp-tech" placeholder="이름 입력 후 Enter"><button class="btn btn-sm" onclick="addP('tech')">추가</button></div>
+      <div class="add-row"><input type="text" id="inp-tech" placeholder="OOO 입력 후 Enter"><button class="btn btn-sm" onclick="addP('tech')">추가</button></div>
     </div>
     <div class="fg"><label>지원인력</label>
       <div class="tw" id="tags-support"></div>
-      <div class="add-row"><input type="text" id="inp-support" placeholder="예) 홍길동(업체명)"><button class="btn btn-sm" onclick="addP('support')">추가</button></div>
+      <div class="add-row"><input type="text" id="inp-support" placeholder="예) OOO(업체명)"><button class="btn btn-sm" onclick="addP('support')">추가</button></div>
     </div>
     <div class="fg"><label>보조인부</label>
       <div class="tw" id="tags-assist"></div>
-      <div class="add-row"><input type="text" id="inp-assist" placeholder="이름 입력"><button class="btn btn-sm" onclick="addP('assist')">추가</button></div>
+      <div class="add-row"><input type="text" id="inp-assist" placeholder="OOO 입력"><button class="btn btn-sm" onclick="addP('assist')">추가</button></div>
     </div>
   </div>
 
   <div class="card">
     <div class="ihead"><div class="inum">6</div><div class="ititle">안전교육 및 조치사항</div></div>
-    <div class="pw" id="presets"></div>
+    <div class="pw" id="presets"><button class="pb" onclick="addSafety('구명조끼 등 개인보호구 착용')" type="button">+ 구명조끼 등 개인보호구 …</button><button class="pb" onclick="addSafety('2인 1조 작업 지시')" type="button">+ 2인 1조 작업 지시</button><button class="pb" onclick="addSafety('고소작업 추락·미끄럼 주의')" type="button">+ 고소작업 추락·미끄럼 주…</button><button class="pb" onclick="addSafety('구급함 비치·충분한 휴식·수분섭취')" type="button">+ 구급함 비치·충분한 휴식…</button><button class="pb" onclick="addSafety('복통조사 시 유해가스 수시확인')" type="button">+ 복통조사 시 유해가스 수…</button><button class="pb" onclick="addSafety('복통조사 시 감시인원 배치')" type="button">+ 복통조사 시 감시인원 배…</button><button class="pb" onclick="addSafety('뱀·독충 안전사고 주의')" type="button">+ 뱀·독충 안전사고 주의</button><button class="pb" onclick="addSafety('안전대·안전로프 비치')" type="button">+ 안전대·안전로프 비치</button><button class="pb" onclick="addSafety('수변작업 구명환 비치')" type="button">+ 수변작업 구명환 비치</button><button class="pb" onclick="addSafety('온열질환 대비 수분섭취 철저')" type="button">+ 온열질환 대비 수분섭취 …</button></div>
     <div id="safety-list"></div>
     <button class="btn btn-sm" onclick="addSafety('')">+ 항목 추가</button>
   </div>
@@ -421,6 +421,14 @@ async function testConn(){
   }catch(e){el.style.color='#A32D2D';el.textContent='연결 실패 — URL을 확인해주세요.';}
 }
 
+function autoSetDow(){
+  const dateVal = document.getElementById('f-date').value;
+  if(!dateVal) return;
+  const days = ['일','월','화','수','목','금','토'];
+  const dow = days[new Date(dateVal).getDay()];
+  document.getElementById('f-dow').value = dow;
+}
+
 function toggleCP(){document.getElementById('cp').style.display=document.getElementById('f-project').value==='직접입력'?'block':'none';}
 function toggleH(){document.getElementById('hd').style.display=document.getElementById('h-issue').checked?'block':'none';}
 function toggleE(){document.getElementById('ed').style.display=document.querySelector('input[name="etc"]:checked').value==='있음'?'block':'none';}
@@ -527,6 +535,7 @@ async function submitTBM(){
   const supervisor=document.getElementById('f-supervisor').value;
   if(!supervisor){showToast('용역감독을 선택해주세요.');return;}
   if(!date||!site||!work||!chief){showToast('날짜, 현장명, 업무내용, 책임기술자는 필수입니다.');return;}
+  if(!document.getElementById('f-notified').checked){showToast('통보를 완료하고 제출하세요.');return;}
 
   const rec={
     id:Date.now(),supervisor,project:getProject(),date,
