@@ -800,25 +800,12 @@ function initMap(){
   if(map)return;
   const container=document.getElementById('map');
   if(!container)return;
-  const options={center:new kakao.maps.LatLng(36.5,127.8),level:13};
+  const options={
+    center:new kakao.maps.LatLng(36.5,127.8),
+    level:13,
+    mapTypeId:kakao.maps.MapTypeId.HYBRID
+  };
   map=new kakao.maps.Map(container,options);
-}
-
-function setMapType(type){
-  if(!map)return;
-  if(type==='skyview'){
-    map.setMapTypeId(kakao.maps.MapTypeId.HYBRID);
-    document.getElementById('btn-sky').style.background='#1a1a1a';
-    document.getElementById('btn-sky').style.color='#fff';
-    document.getElementById('btn-normal').style.background='#fff';
-    document.getElementById('btn-normal').style.color='#1a1a1a';
-  } else {
-    map.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);
-    document.getElementById('btn-normal').style.background='#1a1a1a';
-    document.getElementById('btn-normal').style.color='#fff';
-    document.getElementById('btn-sky').style.background='#fff';
-    document.getElementById('btn-sky').style.color='#1a1a1a';
-  }
 }
 
 function showDetail(r){
