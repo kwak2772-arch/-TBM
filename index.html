@@ -151,7 +151,14 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
 
   <div class="card" style="border-color:#185FA5;">
     <div class="ihead"><div class="inum blue">0</div><div class="ititle">용역감독 (대표자)</div></div>
-    <select id="f-supervisor"><option value="">-- 담당 용역감독 선택 --</option></select>
+    <select id="f-supervisor">
+  <option value="">-- 담당 용역감독 선택 --</option>
+  <option value="1반 김현중">1반 김현중</option>
+  <option value="2반 김인수">2반 김인수</option>
+  <option value="3반 전효묵">3반 전효묵</option>
+  <option value="4반 황일환">4반 황일환</option>
+  <option value="5반 조항준">5반 조항준</option>
+</select>
 
   </div>
 
@@ -344,14 +351,14 @@ function init(){
 }
 
 function loadConfig(){
-  document.getElementById('cfg-url').value = cfg.url;
+  // supervisors는 코드에 고정된 값 사용 (localStorage 무시)
+  const el = document.getElementById('cfg-url');
+  if(el) el.value = cfg.url;
   renderSvTags();renderSvSelect();updateBanner();
 }
 
 function saveConfig(){
-  cfg.supervisors = JSON.parse(localStorage.getItem('tbm_supervisors')||'[]');
-  localStorage.setItem('tbm_supervisors',JSON.stringify(cfg.supervisors));
-  updateBanner();showToast('감독 목록 저장됨');
+  updateBanner();showToast('설정 저장됨');
 }
 
 function updateBanner(){
