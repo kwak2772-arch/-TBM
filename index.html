@@ -622,26 +622,45 @@ async function fetchDash(){
       const r=await fetch(cfg.url+'?t='+Date.now());
       const d=await r.json();
       if(d.result==='success'&&d.records){
-        fetched=d.records.map(row=>({
-          supervisor:row['용역감독']||'',
-          date:row['날짜']||'',dow:row['요일']||'',
-          start:row['시작']||'',end:row['종료']||'',
-          site:row['현장명']||'',addr:row['주소']||'',
-          chief:row['책임기술자']||'',
-          totalPeople:parseInt(row['총인원'])||0,
-          safeties:(row['안전조치사항']||'').split(' / ').filter(Boolean),
-          health:row['건강상태']||'이상 없음',
-          dangers:(row['위험공종']||'').split(', ').filter(Boolean),
-          photos:Array(parseInt(row['사진수'])||0).fill(''),
-          project:row['용역명']||'',
-          branch:row['지사명']||'',contact:row['담당자']||'',
-          work:row['업무내용']||'',etc:row['기타특이사항']||'없음',
-          type:row['점검구분']||'',
-          lat:parseFloat(row['위도'])||null,
-          lng:parseFloat(row['경도'])||null,
-          photoLinks:(row['사진링크']||'').split('\n').filter(Boolean),
-          id:Math.random()
-        }));
+        fetched=d.records.map(row=>{
+          // 날짜 파싱 - 시트에서 오는 다양한 형식 처리
+          let dateVal = row['날짜']||'';
+          if(dateVal.includes('Mon ')||dateVal.includes('Tue ')||dateVal.includes('Wed ')||dateVal.includes('Thu ')||dateVal.includes('Fri ')||dateVal.includes('Sat ')||dateVal.includes('Sun ')){
+            // "Mon Apr 27 2026 00:00:00 GMT+0900" 형식
+            try{ dateVal = new Date(dateVal).toISOString().slice(0,10); }catch(e){}
+          }
+          // 시간 파싱 - 시트에서 오는 "Sat Dec 30 1899 09:00:00..." 형식 처리
+          function parseTime(t){
+            if(!t) return '';
+            if(t.includes('1899')||t.includes('GMT')){
+              try{
+                const d = new Date(t);
+                return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+              }catch(e){return '';}
+            }
+            return t.slice(0,5); // 이미 HH:MM 형식
+          }
+          return {
+            supervisor:row['용역감독']||'',
+            date:dateVal, dow:row['요일']||'',
+            start:parseTime(row['시작']), end:parseTime(row['종료']),
+            site:row['현장명']||'', addr:row['주소']||'',
+            chief:row['책임기술자']||'',
+            totalPeople:parseInt(row['총인원'])||0,
+            safeties:(row['안전조치사항']||'').split(' / ').filter(Boolean),
+            health:row['건강상태']||'이상 없음',
+            dangers:(row['위험공종']||'').split(', ').filter(Boolean),
+            photos:Array(parseInt(row['사진수'])||0).fill(''),
+            project:row['용역명']||'',
+            branch:row['지사명']||'', contact:row['담당자']||'',
+            work:row['업무내용']||'', etc:row['기타특이사항']||'없음',
+            type:row['점검구분']||'',
+            lat:parseFloat(row['위도'])||null,
+            lng:parseFloat(row['경도'])||null,
+            photoLinks:(row['사진링크']||'').split('\n').filter(Boolean),
+            id:Math.random()
+          };
+        });
       }
     }catch(e){console.warn('시트 로드 실패');}
   }
