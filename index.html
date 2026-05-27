@@ -786,21 +786,25 @@ function renderDash(recs){
     const ci=svSet.indexOf(r.supervisor);
     const color=ci>=0?SV_COLORS[ci%SV_COLORS.length]:'#888';
     return `<tr>
-      <td style="white-space:nowrap;">${r.date?r.date.slice(0,10):''}(${r.dow||''})<br><span style="font-size:10px;color:#666;">${r.start||''}~${r.end||''}</span></td>
-      <td><span style="color:${color};font-weight:500;">${r.supervisor||'—'}</span></td>
-      <td title="${r.site}">${r.site}</td>
-      <td style="font-size:11px;color:#666;" title="${r.addr||''}">${r.addr?(r.addr.length>12?r.addr.slice(0,12)+'…':r.addr):'—'}</td>
-      <td>${r.chief}</td>
-      <td>${r.totalPeople}명</td>
-      <td>${(r.safeties||[]).length}건</td>
-      <td><span class="badge ${r.health==='이상 없음'?'bok':'bwarn'}">${r.health==='이상 없음'?'이상없음':'이상있음'}</span></td>
-      <td>${(r.photos||[]).length}장</td>
+      <td style="white-space:nowrap;font-size:12px;">${r.date?r.date.slice(0,10):''}(${r.dow||''})<br><span style="font-size:10px;color:#666;">${r.start||''}~${r.end||''}</span></td>
+      <td><span style="color:${color};font-weight:500;font-size:12px;">${r.supervisor||'—'}</span></td>
+      <td style="font-size:12px;" title="${r.site}">${r.site}</td>
+      <td style="font-size:11px;color:#666;" title="${r.addr||''}">${r.addr?(()=>{
+  const parts=r.addr.split(' ');
+  const sido=parts[0]||'';
+  const shortSido=sido.replace('특별시','').replace('광역시','').replace('특별자치시','').replace('특별자치도','').replace('도','');
+  const sigun=(parts[1]||'').replace('특별자치시','').replace('시','').replace('군','').replace('구','');
+  return shortSido+(sigun?' '+sigun:'');
+})():'—'}</td>
+      <td style="font-size:12px;">${r.chief}</td>
       <td>
         ${r.completed ? 
-          `<span class="badge" style="background:#e5e5e2;color:#666;">✓ 작업완료<br><span style="font-size:10px;">${r.completedTime||''}</span></span>` : 
-          `<span class="badge bok" style="cursor:default;">● 작업중</span>`
+          `<span class="badge" style="background:#e5e5e2;color:#555;font-size:11px;">✓ 완료 ${r.completedTime||''}</span>` : 
+          `<span class="badge bok" style="font-size:11px;">● 작업중</span>`
         }
       </td>
+      <td><span class="badge ${r.health==='이상 없음'?'bok':'bwarn'}">${r.health==='이상 없음'?'이상없음':'이상있음'}</span></td>
+      <td style="font-size:12px;">${(r.photos||[]).length}장</td>
       <td style="white-space:nowrap;">
         ${r.completed ? '' : `<button class="btn btn-sm" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-size:11px;" onclick="markComplete('${r.id}')">작업완료</button>`}
         <button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button>
