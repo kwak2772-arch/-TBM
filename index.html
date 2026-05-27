@@ -320,7 +320,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
       <table class="tbl">
         <thead><tr>
           <th>날짜</th><th>감독</th><th>현장명</th><th>주소</th>
-          <th>책임기술자</th><th>인원</th><th>안전조치</th><th>건강</th><th>사진</th><th></th>
+          <th>책임기술자</th><th>인원</th><th>안전조치</th><th>건강</th><th>사진</th><th>작업상태</th><th></th>
         </tr></thead>
         <tbody id="dash-body"></tbody>
       </table>
@@ -768,6 +768,10 @@ function renderDash(recs){
       <td>${(r.safeties||[]).length}건</td>
       <td><span class="badge ${r.health==='이상 없음'?'bok':'bwarn'}">${r.health==='이상 없음'?'이상없음':'이상있음'}</span></td>
       <td>${(r.photos||[]).length}장</td>
+      <td>${r.completed ? 
+        `<span class="badge bok">✓ 완료 ${r.completedTime||''}</span>` : 
+        `<button class="btn btn-sm" style="background:#3B6D11;color:#fff;border-color:#3B6D11;" onclick="markComplete('${r.id}')">작업완료</button>`
+      }</td>
       <td><button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button></td>
     </tr>`;
   }).join('');
@@ -775,6 +779,38 @@ function renderDash(recs){
 
 function filterBySv(sv){const ds=document.getElementById('d-sv');ds.value=ds.value===sv?'':sv;applyFilter();}
 function clearFilter(){document.getElementById('d-date').value='';document.getElementById('d-sv').value='';document.getElementById('d-site').value='';applyFilter();}
+
+function markComplete(id){
+  const now = new Date();
+  const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  
+  // 확인 메시지
+  if(!confirm('작업완료 처리하시겠습니까?\n완료시각: ' + hhmm)) return;
+  
+  // 로컬 데이터 업데이트
+  const rec = allRecs.find(r=>String(r.id)===String(id));
+  if(rec){
+    rec.completed = true;
+    rec.completedTime = hhmm;
+  }
+  
+  // 로컬스토리지 업데이트
+  const local = JSON.parse(localStorage.getItem('tbm_local')||'[]');
+  const li = local.find(r=>String(r.id)===String(id));
+  if(li){ li.completed=true; li.completedTime=hhmm; localStorage.setItem('tbm_local',JSON.stringify(local)); }
+  
+  // 구글 시트에 완료 기록 전송
+  if(cfg.url){
+    fetch(cfg.url, {
+      method:'POST', mode:'no-cors',
+      body:JSON.stringify({action:'complete', id:id, completedTime:hhmm}),
+      headers:{'Content-Type':'text/plain'}
+    }).catch(()=>{});
+  }
+  
+  showToast('작업완료 처리됨 (' + hhmm + ')');
+  applyFilter();
+}
 
 function filterToday(){
   // 오늘 날짜로 필터 + 현재 시간 기준 작업중인 현장
@@ -880,7 +916,7 @@ function shareKakao(){
     content: {
       title: '26년 안전진단(점검)용역 TBM',
       description: '작업전 TBM 실시 보고 — 여기를 눌러 작성해주세요!',
-      imageUrl: 'https://kwak2772-arch.github.io/-TBM/icon.svg',
+      imageUrl: 'https://kwak2772-arch.github.io/-TBM/share_image.png',
       link: {
         mobileWebUrl: 'https://kwak2772-arch.github.io/-TBM/',
         webUrl: 'https://kwak2772-arch.github.io/-TBM/'
