@@ -320,7 +320,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
       <table class="tbl">
         <thead><tr>
           <th>날짜</th><th>감독</th><th>현장명</th><th>주소</th>
-          <th>책임기술자</th><th>작업상태</th><th>건강</th><th>사진</th><th></th>
+          <th>책임기술자</th><th>작업상태</th><th>건강</th><th>사진</th><th></th><th></th>
         </tr></thead>
         <tbody id="dash-body"></tbody>
       </table>
@@ -811,12 +811,45 @@ function renderDash(recs){
         ${(!r.completed && r.date && r.date.slice(0,10)===today) ? `<button class="btn btn-sm" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-size:11px;" onclick="markComplete('${r.id}')">작업완료</button>` : ''}
         <button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button>
       </td>
+      <td>
+        <button class="btn btn-sm" style="color:#A32D2D;border-color:#F09595;font-size:11px;" onclick="deleteRec('${r.id}')">삭제</button>
+      </td>
     </tr>`;
   }).join('');
 }
 
 function filterBySv(sv){const ds=document.getElementById('d-sv');ds.value=ds.value===sv?'':sv;applyFilter();}
 function clearFilter(){document.getElementById('d-date').value='';document.getElementById('d-sv').value='';document.getElementById('d-site').value='';applyFilter();}
+
+async function deleteRec(id){
+  if(!confirm('이 TBM을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.')) return;
+  
+  // allRecs에서 제거
+  const idx = allRecs.findIndex(r=>String(r.id)===String(id));
+  if(idx>-1) allRecs.splice(idx,1);
+  
+  // 구글 시트에서 삭제 요청
+  if(cfg.url){
+    try{
+      await fetch(cfg.url, {
+        method:'POST',
+        body:JSON.stringify({action:'delete', id:String(id)}),
+        headers:{'Content-Type':'text/plain'}
+      });
+    }catch(e){
+      try{
+        await fetch(cfg.url, {
+          method:'POST', mode:'no-cors',
+          body:JSON.stringify({action:'delete', id:String(id)}),
+          headers:{'Content-Type':'text/plain'}
+        });
+      }catch(e2){}
+    }
+  }
+  
+  showToast('삭제되었습니다.');
+  applyFilter();
+}
 
 async function markComplete(id){
   const now = new Date();
