@@ -697,17 +697,44 @@ function renderDash(recs){
   const svSet=[...new Set(allRecs.map(r=>r.supervisor).filter(Boolean))];
   const siteSet=[...new Set(allRecs.map(r=>r.site).filter(Boolean))];
 
+  // 이번 주 계산
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // 월요일
+  const weekStartStr = weekStart.toISOString().slice(0,10);
+  const wR = allRecs.filter(r=>r.date&&r.date.slice(0,10)>=weekStartStr);
+  
+  // 현재 작업중 계산
+  const now = new Date();
+  const hhmm = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const activeRecs = allRecs.filter(r=>{
+    if(!r.date||r.date.slice(0,10)!==today)return false;
+    if(r.completed) return false;
+    const s=r.start||'00:00', e=r.end||'23:59';
+    return hhmm>=s&&hhmm<=e;
+  });
+  const healthRecs = allRecs.filter(r=>r.health&&r.health!=='이상 없음');
+
   document.getElementById('sgrid').innerHTML=`
-    <div class="scard" onclick="clearFilter()" style="cursor:pointer;" title="전체 보기">
-      <div class="slbl">전체 제출</div><div class="sval">${allRecs.length}</div>
+    <div class="scard" onclick="filterToday()" style="cursor:pointer;border:1.5px solid #185FA5;" title="금일 작업 신청 현장">
+      <div class="slbl" style="color:#185FA5;">📋 금일 작업신청</div>
+      <div class="sval" style="color:#185FA5;">${tR.length}</div>
+      
     </div>
-    <div class="scard" onclick="filterToday()" style="cursor:pointer;border:2px solid #3B6D11;" title="오늘 작업 현장 보기">
-      <div class="slbl">🟢 오늘 작업 <span style="font-size:10px;">(클릭)</span></div>
-      <div class="sval ok">${tR.length}</div>
-      <div style="font-size:10px;color:#3B6D11;margin-top:2px;">${tR.length}개 현장 작업중</div>
+    <div class="scard" onclick="filterActive()" style="cursor:pointer;border:1.5px solid #3B6D11;" title="현재 작업중인 현장">
+      <div class="slbl" style="color:#3B6D11;">🟢 현재 작업중</div>
+      <div class="sval ok">${activeRecs.length}</div>
+      <div style="font-size:10px;color:#3B6D11;margin-top:2px;">${hhmm} 기준</div>
     </div>
-    <div class="scard"><div class="slbl">이번 달</div><div class="sval">${mR.length}</div></div>
-    <div class="scard"><div class="slbl">건강이상</div><div class="sval warn-c">${allRecs.filter(r=>r.health&&r.health!=='이상 없음').length}</div></div>
+    <div class="scard" onclick="filterWeek()" style="cursor:pointer;border:1.5px solid #534AB7;" title="이번주 TBM">
+      <div class="slbl" style="color:#534AB7;">📅 이번주 TBM</div>
+      <div class="sval" style="color:#534AB7;">${wR.length}</div>
+      
+    </div>
+    <div class="scard" onclick="filterHealth()" style="cursor:pointer;border:1.5px solid #A32D2D;" title="건강이상자">
+      <div class="slbl" style="color:#A32D2D;">🚨 건강이상</div>
+      <div class="sval warn-c">${healthRecs.length}</div>
+      
+    </div>
   `;
 
   const svFilter=document.getElementById('sv-filter');
@@ -768,11 +795,16 @@ function renderDash(recs){
       <td>${(r.safeties||[]).length}건</td>
       <td><span class="badge ${r.health==='이상 없음'?'bok':'bwarn'}">${r.health==='이상 없음'?'이상없음':'이상있음'}</span></td>
       <td>${(r.photos||[]).length}장</td>
-      <td>${r.completed ? 
-        `<span class="badge bok">✓ 완료 ${r.completedTime||''}</span>` : 
-        `<button class="btn btn-sm" style="background:#3B6D11;color:#fff;border-color:#3B6D11;" onclick="markComplete('${r.id}')">작업완료</button>`
-      }</td>
-      <td><button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button></td>
+      <td>
+        ${r.completed ? 
+          `<span class="badge" style="background:#e5e5e2;color:#666;">✓ 작업완료<br><span style="font-size:10px;">${r.completedTime||''}</span></span>` : 
+          `<span class="badge bok" style="cursor:default;">● 작업중</span>`
+        }
+      </td>
+      <td style="white-space:nowrap;">
+        ${r.completed ? '' : `<button class="btn btn-sm" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-size:11px;" onclick="markComplete('${r.id}')">작업완료</button>`}
+        <button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -813,23 +845,40 @@ function markComplete(id){
 }
 
 function filterToday(){
-  // 오늘 날짜로 필터 + 현재 시간 기준 작업중인 현장
-  const now = new Date();
-  const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   document.getElementById('d-date').value = today;
   document.getElementById('d-sv').value = '';
   document.getElementById('d-site').value = '';
-  
-  const filtered = allRecs.filter(r => {
-    if(!r.date || r.date.slice(0,10) !== today) return false;
-    // 작업 시간 범위 체크
-    const start = r.start || '00:00';
-    const end = r.end || '23:59';
-    return hhmm >= start && hhmm <= end;
-  });
-  
+  const filtered = allRecs.filter(r=>r.date&&r.date.slice(0,10)===today);
   renderDash(filtered);
-  showToast('현재 시각 ' + hhmm + ' 기준 작업중인 현장: ' + filtered.length + '개');
+  showToast('금일 작업 신청: ' + filtered.length + '건');
+}
+
+function filterActive(){
+  const now = new Date();
+  const hhmm = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const filtered = allRecs.filter(r=>{
+    if(!r.date||r.date.slice(0,10)!==today)return false;
+    if(r.completed) return false; // 작업완료 제외
+    const s=r.start||'00:00', e=r.end||'23:59';
+    return hhmm>=s&&hhmm<=e;
+  });
+  renderDash(filtered);
+  showToast('현재(' + hhmm + ') 작업중: ' + filtered.length + '개 현장');
+}
+
+function filterWeek(){
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+  const weekStartStr = weekStart.toISOString().slice(0,10);
+  const filtered = allRecs.filter(r=>r.date&&r.date.slice(0,10)>=weekStartStr);
+  renderDash(filtered);
+  showToast('이번주 TBM: ' + filtered.length + '건');
+}
+
+function filterHealth(){
+  const filtered = allRecs.filter(r=>r.health&&r.health!=='이상 없음');
+  renderDash(filtered);
+  showToast('건강이상자: ' + filtered.length + '건');
 }
 
 function initMap(){
