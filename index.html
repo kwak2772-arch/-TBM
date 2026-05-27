@@ -800,13 +800,15 @@ function renderDash(recs){
       <td>
         ${r.completed ? 
           `<span class="badge" style="background:#e5e5e2;color:#555;font-size:11px;">✓ 완료 ${r.completedTime||''}</span>` : 
+          r.date && r.date.slice(0,10) < today ?
+          `<span class="badge" style="background:#f0f0f0;color:#888;font-size:11px;">작업종료</span>` :
           `<span class="badge bok" style="font-size:11px;">● 작업중</span>`
         }
       </td>
       <td><span class="badge ${r.health==='이상 없음'?'bok':'bwarn'}">${r.health==='이상 없음'?'이상없음':'이상있음'}</span></td>
       <td style="font-size:12px;">${(r.photos||[]).length}장</td>
       <td style="white-space:nowrap;">
-        ${r.completed ? '' : `<button class="btn btn-sm" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-size:11px;" onclick="markComplete('${r.id}')">작업완료</button>`}
+        ${(!r.completed && r.date && r.date.slice(0,10)===today) ? `<button class="btn btn-sm" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-size:11px;" onclick="markComplete('${r.id}')">작업완료</button>` : ''}
         <button class="btn btn-sm" onclick='showDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>상세</button>
       </td>
     </tr>`;
