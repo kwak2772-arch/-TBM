@@ -712,7 +712,7 @@ function renderDash(recs){
     const s=r.start||'00:00', e=r.end||'23:59';
     return hhmm>=s&&hhmm<=e;
   });
-  const healthRecs = allRecs.filter(r=>r.health&&r.health!=='이상 없음');
+  const healthRecs = allRecs.filter(r=>r.health&&r.health!=='이상 없음'&&r.date&&r.date.slice(0,10)===today);
 
   document.getElementById('sgrid').innerHTML=`
     <div class="scard" onclick="filterToday()" style="cursor:pointer;border:1.5px solid #185FA5;" title="금일 작업 신청 현장">
@@ -731,7 +731,7 @@ function renderDash(recs){
       
     </div>
     <div class="scard" onclick="filterHealth()" style="cursor:pointer;border:1.5px solid #A32D2D;" title="건강이상자">
-      <div class="slbl" style="color:#A32D2D;">🚨 건강이상</div>
+      <div class="slbl" style="color:#A32D2D;">🚨 금일 건강이상</div>
       <div class="sval warn-c">${healthRecs.length}</div>
       
     </div>
@@ -899,9 +899,9 @@ function filterWeek(){
 }
 
 function filterHealth(){
-  const filtered = allRecs.filter(r=>r.health&&r.health!=='이상 없음');
+  const filtered = allRecs.filter(r=>r.health&&r.health!=='이상 없음'&&r.date&&r.date.slice(0,10)===today);
   renderDash(filtered);
-  showToast('건강이상자: ' + filtered.length + '건');
+  showToast('금일 건강이상: ' + filtered.length + '건');
 }
 
 function initMap(){
