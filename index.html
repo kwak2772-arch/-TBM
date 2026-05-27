@@ -812,35 +812,32 @@ function renderDash(recs){
 function filterBySv(sv){const ds=document.getElementById('d-sv');ds.value=ds.value===sv?'':sv;applyFilter();}
 function clearFilter(){document.getElementById('d-date').value='';document.getElementById('d-sv').value='';document.getElementById('d-site').value='';applyFilter();}
 
-function markComplete(id){
+async function markComplete(id){
   const now = new Date();
   const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   
-  // 확인 메시지
   if(!confirm('작업완료 처리하시겠습니까?\n완료시각: ' + hhmm)) return;
   
-  // 로컬 데이터 업데이트
+  // 즉시 화면 업데이트
   const rec = allRecs.find(r=>String(r.id)===String(id));
-  if(rec){
-    rec.completed = true;
-    rec.completedTime = hhmm;
-  }
-  
-  // 로컬스토리지 업데이트
-  const local = JSON.parse(localStorage.getItem('tbm_local')||'[]');
-  const li = local.find(r=>String(r.id)===String(id));
-  if(li){ li.completed=true; li.completedTime=hhmm; localStorage.setItem('tbm_local',JSON.stringify(local)); }
+  if(rec){ rec.completed=true; rec.completedTime=hhmm; }
   
   // 구글 시트에 완료 기록 전송
   if(cfg.url){
-    fetch(cfg.url, {
-      method:'POST', mode:'no-cors',
-      body:JSON.stringify({action:'complete', id:id, completedTime:hhmm}),
-      headers:{'Content-Type':'text/plain'}
-    }).catch(()=>{});
+    try{
+      await fetch(cfg.url, {
+        method:'POST', mode:'no-cors',
+        body:JSON.stringify({action:'complete', id:id, completedTime:hhmm}),
+        headers:{'Content-Type':'text/plain'}
+      });
+      showToast('작업완료 처리됨 (' + hhmm + ') — 시트에 저장됨');
+    }catch(e){
+      showToast('작업완료 처리됨 (' + hhmm + ')');
+    }
+  } else {
+    showToast('작업완료 처리됨 (' + hhmm + ')');
   }
   
-  showToast('작업완료 처리됨 (' + hhmm + ')');
   applyFilter();
 }
 
