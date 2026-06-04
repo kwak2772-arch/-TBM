@@ -1,4 +1,4 @@
-// Service Worker - 캐시 없는 버전
+// Service Worker - 캐시 없는 버전 v2
 self.addEventListener('install', function(event) {
   self.skipWaiting();
 });
