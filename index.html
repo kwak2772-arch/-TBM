@@ -824,31 +824,29 @@ function clearFilter(){document.getElementById('d-date').value='';document.getEl
 async function deleteRec(id){
   if(!confirm('이 TBM을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.')) return;
   
-  // allRecs에서 제거
-  const idx = allRecs.findIndex(r=>String(r.id)===String(id));
-  if(idx>-1) allRecs.splice(idx,1);
-  
-  // 구글 시트에서 삭제 요청
   if(cfg.url){
     try{
-      await fetch(cfg.url, {
-        method:'POST',
-        body:JSON.stringify({action:'delete', id:String(id)}),
-        headers:{'Content-Type':'text/plain'}
-      });
+      // GET 방식으로 전송 (CORS 문제 없음)
+      const url = cfg.url + '?action=delete&id=' + encodeURIComponent(String(id));
+      const res = await fetch(url);
+      const result = await res.json();
+      if(result.result==='success'){
+        const idx = allRecs.findIndex(r=>String(r.id)===String(id));
+        if(idx>-1) allRecs.splice(idx,1);
+        showToast('삭제되었습니다.');
+        applyFilter();
+      } else {
+        showToast('삭제 실패: ' + (result.message||'오류'));
+      }
     }catch(e){
-      try{
-        await fetch(cfg.url, {
-          method:'POST', mode:'no-cors',
-          body:JSON.stringify({action:'delete', id:String(id)}),
-          headers:{'Content-Type':'text/plain'}
-        });
-      }catch(e2){}
+      showToast('오류: ' + e.message);
     }
+  } else {
+    const idx = allRecs.findIndex(r=>String(r.id)===String(id));
+    if(idx>-1) allRecs.splice(idx,1);
+    showToast('삭제되었습니다.');
+    applyFilter();
   }
-  
-  showToast('삭제되었습니다.');
-  applyFilter();
 }
 
 async function markComplete(id){
@@ -857,16 +855,11 @@ async function markComplete(id){
   
   if(!confirm('작업완료 처리하시겠습니까?\n완료시각: ' + hhmm)) return;
 
-  const btn = document.querySelector(`button[onclick="markComplete('${id}')"]`);
-  if(btn){ btn.disabled=true; btn.textContent='저장중...'; }
-
   if(cfg.url){
     try{
-      const res = await fetch(cfg.url, {
-        method:'POST',
-        body:JSON.stringify({action:'complete', id:String(id), completedTime:hhmm}),
-        headers:{'Content-Type':'text/plain'}
-      });
+      // GET 방식으로 전송 (CORS 문제 없음)
+      const url = cfg.url + '?action=complete&id=' + encodeURIComponent(String(id)) + '&completedTime=' + encodeURIComponent(hhmm);
+      const res = await fetch(url);
       const result = await res.json();
       if(result.result==='success'){
         const rec = allRecs.find(r=>String(r.id)===String(id));
@@ -874,25 +867,10 @@ async function markComplete(id){
         showToast('✓ 작업완료 (' + hhmm + ') — 모든 기기에 반영됩니다');
         applyFilter();
       } else {
-        showToast('저장 실패: ' + (result.message||'알 수 없는 오류'));
-        if(btn){ btn.disabled=false; btn.textContent='작업완료'; }
+        showToast('저장 실패: ' + (result.message||'오류'));
       }
     }catch(e){
-      // CORS 오류 시 no-cors로 재시도
-      try{
-        await fetch(cfg.url, {
-          method:'POST', mode:'no-cors',
-          body:JSON.stringify({action:'complete', id:String(id), completedTime:hhmm}),
-          headers:{'Content-Type':'text/plain'}
-        });
-        const rec = allRecs.find(r=>String(r.id)===String(id));
-        if(rec){ rec.completed=true; rec.completedTime=hhmm; }
-        showToast('✓ 작업완료 (' + hhmm + ')');
-        applyFilter();
-      }catch(e2){
-        showToast('오류 발생: 새로고침 후 다시 시도해주세요');
-        if(btn){ btn.disabled=false; btn.textContent='작업완료'; }
-      }
+      showToast('오류: ' + e.message);
     }
   } else {
     const rec = allRecs.find(r=>String(r.id)===String(id));
