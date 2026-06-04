@@ -667,7 +667,9 @@ async function fetchDash(){
             lat:parseFloat(row['위도'])||null,
             lng:parseFloat(row['경도'])||null,
             photoLinks:(row['사진링크']||'').split('\n').filter(Boolean),
-            id:Math.random()
+            completed: !!(row['작업완료시각'] && row['작업완료시각'].trim()),
+            completedTime: row['작업완료시각']||'',
+            id: row['제출ID'] && row['제출ID'].trim() ? row['제출ID'].trim() : Math.random().toString()
           };
         });
       }
