@@ -754,11 +754,22 @@ function renderDash(recs){
 
   const svFilter=document.getElementById('sv-filter');
   const curSv=document.getElementById('d-sv').value;
+  const now2 = new Date();
+  const hhmm2 = now2.getHours().toString().padStart(2,'0')+':'+now2.getMinutes().toString().padStart(2,'0');
   svFilter.innerHTML=svSet.map((sv,i)=>{
     const color=SV_COLORS[i%SV_COLORS.length];
-    const cnt=allRecs.filter(r=>r.supervisor===sv).length;
+    const totalCnt=allRecs.filter(r=>r.supervisor===sv).length;
+    const activeCnt=allRecs.filter(r=>{
+      if(r.supervisor!==sv) return false;
+      if(!r.date||r.date.slice(0,10)!==today) return false;
+      if(r.completed) return false;
+      const s=r.start||'00:00', e=r.end||'23:59';
+      return hhmm2>=s&&hhmm2<=e;
+    }).length;
     const active=curSv===sv;
-    return `<button class="sv-btn" onclick="filterBySv('${sv}')" style="border-color:${color};color:${active?'#fff':color};background:${active?color:'transparent'};">${sv} (${cnt})</button>`;
+    return `<button class="sv-btn" onclick="filterBySvActive('${sv}')" style="border-color:${color};color:${active?'#fff':color};background:${active?color:'transparent'};">
+      ${sv} <span style="font-size:10px;">(전체 ${totalCnt} / 작업중 ${activeCnt})</span>
+    </button>`;
   }).join('');
 
   const ds=document.getElementById('d-sv'),dsite=document.getElementById('d-site');
@@ -832,6 +843,30 @@ function renderDash(recs){
 }
 
 function filterBySv(sv){const ds=document.getElementById('d-sv');ds.value=ds.value===sv?'':sv;applyFilter();}
+
+function filterBySvActive(sv){
+  const ds=document.getElementById('d-sv');
+  ds.value=ds.value===sv?'':sv;
+  // 해당 감독의 현재 작업중만 필터
+  const now3=new Date();
+  const hhmm3=now3.getHours().toString().padStart(2,'0')+':'+now3.getMinutes().toString().padStart(2,'0');
+  const filtered=allRecs.filter(r=>{
+    if(r.supervisor!==sv) return false;
+    if(!r.date||r.date.slice(0,10)!==today) return false;
+    if(r.completed) return false;
+    const s=r.start||'00:00', e=r.end||'23:59';
+    return hhmm3>=s&&hhmm3<=e;
+  });
+  if(filtered.length>0){
+    renderDash(filtered);
+    showToast(sv+' 현재 작업중: '+filtered.length+'개 현장');
+  } else {
+    // 작업중이 없으면 해당 감독 전체 표시
+    const all=allRecs.filter(r=>r.supervisor===sv);
+    renderDash(all);
+    showToast(sv+' 현재 작업중인 현장 없음');
+  }
+}
 function clearFilter(){document.getElementById('d-date').value='';document.getElementById('d-sv').value='';document.getElementById('d-site').value='';applyFilter();}
 
 async function deleteRec(id){
