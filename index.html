@@ -758,7 +758,7 @@ function renderDash(recs){
   const hhmm2 = now2.getHours().toString().padStart(2,'0')+':'+now2.getMinutes().toString().padStart(2,'0');
   svFilter.innerHTML=svSet.map((sv,i)=>{
     const color=SV_COLORS[i%SV_COLORS.length];
-    const totalCnt=allRecs.filter(r=>r.supervisor===sv).length;
+    const todayCnt=allRecs.filter(r=>r.supervisor===sv&&r.date&&r.date.slice(0,10)===today).length;
     const activeCnt=allRecs.filter(r=>{
       if(r.supervisor!==sv) return false;
       if(!r.date||r.date.slice(0,10)!==today) return false;
@@ -768,7 +768,7 @@ function renderDash(recs){
     }).length;
     const active=curSv===sv;
     return `<button class="sv-btn" onclick="filterBySvActive('${sv}')" style="border-color:${color};color:${active?'#fff':color};background:${active?color:'transparent'};">
-      ${sv} <span style="font-size:10px;">(전체 ${totalCnt} / 작업중 ${activeCnt})</span>
+      ${sv} <span style="font-size:10px;">(금일 ${todayCnt} / 작업중 ${activeCnt})</span>
     </button>`;
   }).join('');
 
