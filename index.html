@@ -993,6 +993,16 @@ function showDetail(r){
   const svSet=[...new Set(allRecs.map(x=>x.supervisor).filter(Boolean))];
   const ci=svSet.indexOf(r.supervisor);
   const color=ci>=0?SV_COLORS[ci%SV_COLORS.length]:'#888';
+  // modal 요소가 없으면 body에 추가
+  if(!document.getElementById('modal')){
+    const ov=document.createElement('div');
+    ov.id='ov';ov.className='ov';
+    ov.onclick=function(e){if(e.target.id==='ov')ov.classList.remove('open');};
+    const modal=document.createElement('div');
+    modal.id='modal';modal.className='modal';
+    ov.appendChild(modal);
+    document.body.appendChild(ov);
+  }
   document.getElementById('modal').innerHTML=`
     <h3>26년 안전진단(점검)용역 TBM</h3>
     <div class="dr"><span class="l">용역감독</span><span style="color:${color};font-weight:500;">${r.supervisor||'—'}</span></div>
