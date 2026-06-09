@@ -983,6 +983,8 @@ function initMap(){
   });
 }
 
+function closeOvFull(e){if(e.target.id==='ov-full')document.getElementById('ov-full').style.display='none';}
+
 function showDetail(r){
   const svSet=[...new Set(allRecs.map(x=>x.supervisor).filter(Boolean))];
   const ci=svSet.indexOf(r.supervisor);
@@ -1007,7 +1009,13 @@ function showDetail(r){
     ${(r.photoLinks&&r.photoLinks.length)?`<div class="dr col"><span class="l">⑩ 사진 (${r.photoLinks.length}장)</span><div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">${r.photoLinks.map((link,i)=>`<a href="${link}" target="_blank" style="font-size:12px;color:#185FA5;">📷 사진 ${i+1} 보기 (드라이브)</a>`).join('')}</div></div>`:(r.photos&&r.photos.filter(p=>p).length?`<div class="dr col"><span class="l">⑩ 사진 (${r.photos.length}장)</span><div class="phg">${r.photos.filter(p=>p).map(s=>`<img src="${s}">`).join('')}</div></div>`:'')}
     <div style="text-align:right;margin-top:14px;"><button class="btn" onclick="document.getElementById('ov').classList.remove('open')">닫기</button></div>
   `;
-  document.getElementById('ov').classList.add('open');
+  if(document.fullscreenElement){
+    // 전체화면 중에는 별도 오버레이 사용
+    document.getElementById('modal-full').innerHTML = document.getElementById('modal').innerHTML;
+    document.getElementById('ov-full').style.display='block';
+  } else {
+    document.getElementById('ov').classList.add('open');
+  }
 }
 
 function closeOv(e){if(e.target.id==='ov')document.getElementById('ov').classList.remove('open');}
