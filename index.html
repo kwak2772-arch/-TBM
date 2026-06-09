@@ -966,6 +966,23 @@ function initMap(){
     mapTypeId:kakao.maps.MapTypeId.HYBRID
   };
   map=new kakao.maps.Map(container,options);
+  
+  // 지도 클릭 시 가장 가까운 마커 찾아서 상세창 열기
+  kakao.maps.event.addListener(map,'click',function(mouseEvent){
+    if(!window._mapMarkerData||!window._mapMarkerData.length) return;
+    const lat = mouseEvent.latLng.getLat();
+    const lng = mouseEvent.latLng.getLng();
+    let minDist = 999, nearest = null;
+    window._mapMarkerData.forEach(function(r){
+      if(!r.lat||!r.lng) return;
+      const d = Math.sqrt(Math.pow(lat-r.lat,2)+Math.pow(lng-r.lng,2));
+      if(d < minDist){ minDist=d; nearest=r; }
+    });
+    // 0.05도 이내(약 5km)면 상세창 열기
+    if(nearest && minDist < 0.05){
+      showDetail(nearest);
+    }
+  });
 }
 
 function showDetail(r){
