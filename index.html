@@ -974,8 +974,13 @@ function showDetail(r){
     <div class="dr"><span class="l">① 용역명</span><span style="font-size:11px;">${r.project}</span></div>
     <div class="dr"><span class="l">② 작업일시</span><span>${r.date?r.date.slice(0,10):''}(${r.dow||''}) ${r.start||'09:00'}~${r.end||'18:00'}</span></div>
     <div class="dr col"><span class="l">③ 업무계획</span><span class="v">${r.site} ${r.addr?'('+r.addr+')':''}<br>${(r.work||'').replace(/\n/g,'<br>')}</span></div>
-    <div class="dr"><span class="l">④ 시설관리자</span><span>${r.notNeeded?'해당없음':(r.notified?'통보완료':'미통보')} ${r.branch||''} ${r.contact||''}</span></div>
-    <div class="dr col"><span class="l">⑤ 참여인원</span><span class="v">책임: ${r.chief}<br>${r.tech&&r.tech.length?'기술자: '+r.tech.join(', ')+'<br>':''}${r.support&&r.support.length?'지원: '+r.support.join(', ')+'<br>':''}${r.assist&&r.assist.length?'보조: '+r.assist.join(', '):''}</span></div>
+    <div class="dr"><span class="l">④ 시설관리자</span><span>${r.noticeStatus||(r.notNeeded?'해당없음':(r.notified?'통보완료':'미통보'))} ${r.branch||''} ${r.contact||''}</span></div>
+    <div class="dr col"><span class="l">⑤ 참여인원</span><span class="v">
+      사업책임기술자: ${r.chief}<br>
+      ${r.tech&&r.tech.length?'참여기술자: '+r.tech.map(t=>'<br>&nbsp;&nbsp;- '+t).join('')+'<br>':''}
+      ${r.support&&r.support.length?'지원인력: '+r.support.map(s=>'<br>&nbsp;&nbsp;- '+s).join('')+'<br>':''}
+      ${r.assist&&r.assist.length?'보조인부: '+r.assist.map(a=>'<br>&nbsp;&nbsp;- '+a).join(''):''}
+    </span></div>
     ${r.safeties&&r.safeties.length?`<div class="dr col"><span class="l">⑥ 안전조치</span><span class="v">${r.safeties.map(s=>'- '+s).join('<br>')}</span></div>`:''}
     <div class="dr"><span class="l">⑦ 건강상태</span><span>${r.health}</span></div>
     <div class="dr"><span class="l">⑧ 위험공종</span><span>${(r.dangers||[]).join(', ')||'없음'}</span></div>
