@@ -304,7 +304,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
 <div id="s-dash" class="sec">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
     <span style="font-size:13px;font-weight:500;">전체 현황</span>
-    <button class="btn btn-sm" onclick="fetchDash()" id="refresh-btn">새로고침</button>
+    <button class="btn btn-sm" onclick="fetchDash()" id="refresh-btn">새로고침</button><span id="auto-refresh-badge" style="font-size:11px;color:#3B6D11;margin-left:8px;">● 30초 자동갱신</span>
   </div>
   <div class="sgrid" id="sgrid"></div>
   <div id="sv-filter" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
@@ -344,6 +344,7 @@ let allRecs = [];
 let ppl={tech:[],support:[],assist:[],danger:[]};
 let safeties=[],photos=[];
 let map=null,markers=[];
+let autoRefreshTimer=null;
 
 const SV_COLORS=['#185FA5','#3B6D11','#993C1D','#534AB7','#854F0B','#0F6E56'];
 const PRESETS=['구명조끼 등 개인보호구 착용','2인 1조 작업 지시','고소작업 추락·미끄럼 주의','구급함 비치·충분한 휴식·수분섭취','복통조사 시 유해가스 수시확인','복통조사 시 감시인원 배치','뱀·독충 안전사고 주의','안전대·안전로프 비치','수변작업 구명환 비치','온열질환 대비 수분섭취 철저'];
@@ -919,6 +920,34 @@ function filterHealth(){
   showToast('금일 건강이상: ' + filtered.length + '건');
 }
 
+function toggleFullMap(){
+  const wrap = document.getElementById('map-wrap');
+  const btn = document.getElementById('fullmap-btn');
+  if(!document.fullscreenElement){
+    wrap.requestFullscreen().then(()=>{
+      document.getElementById('map').style.height='100vh';
+      btn.textContent='✕ 닫기';
+      setTimeout(()=>map&&map.relayout&&map.relayout(),300);
+    }).catch(()=>{
+      // 전체화면 안되면 높이만 키우기
+      document.getElementById('map').style.height='80vh';
+      btn.textContent='✕ 축소';
+    });
+  } else {
+    document.exitFullscreen();
+    document.getElementById('map').style.height='320px';
+    btn.textContent='⛶ 전체화면';
+  }
+}
+
+document.addEventListener('fullscreenchange', function(){
+  if(!document.fullscreenElement){
+    document.getElementById('map').style.height='320px';
+    document.getElementById('fullmap-btn').textContent='⛶ 전체화면';
+    setTimeout(()=>map&&map.invalidateSize&&map.invalidateSize(),300);
+  }
+});
+
 function initMap(){
   if(map)return;
   const container=document.getElementById('map');
@@ -959,7 +988,14 @@ function go(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['write','dash','setup'][i]===t));
   document.querySelectorAll('.sec').forEach(el=>el.classList.remove('active'));
   document.getElementById('s-'+t).classList.add('active');
-  if(t==='dash')fetchDash();
+  if(t==='dash'){
+    fetchDash();
+    // 30초마다 자동 새로고침
+    if(autoRefreshTimer) clearInterval(autoRefreshTimer);
+    autoRefreshTimer = setInterval(fetchDash, 30000);
+  } else {
+    if(autoRefreshTimer){ clearInterval(autoRefreshTimer); autoRefreshTimer=null; }
+  }
 }
 
 function addSvMain(){
