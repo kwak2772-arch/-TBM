@@ -768,7 +768,6 @@ function renderDash(recs){
   const geoRecs=recs.filter(r=>r.lat&&r.lng);
   const bounds=[];
   geoRecs.forEach((r,mIdx)=>{
-    if(!window._mapMarkerData) window._mapMarkerData = [];
     window._mapMarkerData.push(r);
     const color=SV_COLORS[(svIdx[r.supervisor]||0)%SV_COLORS.length];
     const pos=new kakao.maps.LatLng(r.lat,r.lng);
