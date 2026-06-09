@@ -311,6 +311,10 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
   <div id="map-wrap" style="position:relative;border-radius:12px;overflow:hidden;border:1px solid #e5e5e2;margin-bottom:14px;">
   <div id="map" style="width:100%;height:340px;"></div>
   <button onclick="toggleFullMap()" id="fullmap-btn" style="position:absolute;top:10px;right:10px;z-index:10;background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;">⛶ 전체화면</button>
+  <!-- 전체화면용 상세창 -->
+  <div id="ov-map" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;padding:16px;" onclick="if(event.target.id==='ov-map')this.style.display='none'">
+    <div class="modal" id="modal-map" style="background:#fff;border-radius:14px;padding:20px;max-width:560px;margin:0 auto;"></div>
+  </div>
 </div>
   <div class="fbar">
     <input type="date" id="d-date" oninput="applyFilter()">
@@ -1010,9 +1014,8 @@ function showDetail(r){
     <div style="text-align:right;margin-top:14px;"><button class="btn" onclick="document.getElementById('ov').classList.remove('open')">닫기</button></div>
   `;
   if(document.fullscreenElement){
-    // 전체화면 중에는 별도 오버레이 사용
-    document.getElementById('modal-full').innerHTML = document.getElementById('modal').innerHTML;
-    document.getElementById('ov-full').style.display='block';
+    document.getElementById('modal-map').innerHTML = document.getElementById('modal').innerHTML;
+    document.getElementById('ov-map').style.display='block';
   } else {
     document.getElementById('ov').classList.add('open');
   }
