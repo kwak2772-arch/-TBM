@@ -767,16 +767,15 @@ function renderDash(recs){
   const svIdx={};svSet.forEach((sv,i)=>svIdx[sv]=i);
   const geoRecs=recs.filter(r=>r.lat&&r.lng);
   const bounds=[];
-  geoRecs.forEach(r=>{
+  geoRecs.forEach((r,mIdx)=>{
+    if(!window._mapMarkerData) window._mapMarkerData = [];
+    window._mapMarkerData.push(r);
     const color=SV_COLORS[(svIdx[r.supervisor]||0)%SV_COLORS.length];
     const pos=new kakao.maps.LatLng(r.lat,r.lng);
-    const content=`<div style="background:${color};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;white-space:nowrap;box-shadow:0 1px 5px rgba(0,0,0,0.3);cursor:pointer;">${r.site}</div>`;
+    const ci=mIdx;
+    const content=`<div onclick="showDetail(window._mapMarkerData[${ci}])" style="background:${color};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;white-space:nowrap;box-shadow:0 1px 5px rgba(0,0,0,0.3);cursor:pointer;">${r.site}</div>`;
     const overlay=new kakao.maps.CustomOverlay({position:pos,content:content,yAnchor:1});
     overlay.setMap(map);
-    const infowindow=new kakao.maps.InfoWindow({
-      content:`<div style="padding:10px;font-size:12px;line-height:1.8;min-width:160px;"><b>${r.site}</b><br>감독: ${r.supervisor||'—'}<br>${r.date}(${r.dow||''}) ${r.start||''}~${r.end||''}<br>${r.addr||''}<br>책임: ${r.chief}<br>인원: ${r.totalPeople}명</div>`
-    });
-    kakao.maps.event.addListener(overlay,'click',function(){infowindow.open(map,new kakao.maps.Marker({position:pos}));});
     markers.push(overlay);
     bounds.push(pos);
   });
