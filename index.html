@@ -344,7 +344,11 @@ textarea{resize:vertical;min-height:64px;line-height:1.6;}
 
 
 <script>
-const today = new Date().toISOString().slice(0,10);
+const today = (()=>{
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9*60*60*1000);
+  return kst.toISOString().slice(0,10);
+})();
 let cfg = {url:"https://script.google.com/macros/s/AKfycbyIlII4Gel3p7Hpy4K8pFExbk4CqGzFEn4pTmRjQh9ztMRKQV7Kbgly4rjZedmu17Glbg/exec", supervisors:["1반 김현중", "2반 김인수", "3반 전효묵", "4반 황일환", "5반 조항준"]};
 let localRecs = JSON.parse(localStorage.getItem('tbm_local')||'[]');
 let allRecs = [];
